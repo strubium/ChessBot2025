@@ -58,7 +58,63 @@ void reset_board() {
     print_board_log();
 }
 
-// --- Move application ---
+
+// --- Helpers ---
+bool on_board(int r, int f) {
+    return r >= 0 && r < 8 && f >= 0 && f < 8;
+}
+
+bool is_my_piece(char piece, char side) {
+    if (piece == '.') return false;
+    return (side=='w') ? isupper(piece) : islower(piece);
+}
+
+bool can_capture(char piece, char side) {
+    if (piece == '.') return true;
+    return !is_my_piece(piece, side);
+}
+
+// --- Move generator ---
+// Piece values for basic evaluation
+int piece_value(char p){
+    switch(toupper(p)){
+        case 'P': return 1;
+        case 'N': return 3;
+        case 'B': return 3;
+        case 'R': return 5;
+        case 'Q': return 9;
+        case 'K': return 1000; // king is invaluable
+    }
+    return 0;
+}
+
+
+#define BOARD_SIZE 8
+#define MOVE_HISTORY_LEN 8  // number of previous moves to track
+
+static char board[BOARD_SIZE][BOARD_SIZE];
+
+struct MoveHistory {
+    int from_r, from_f;
+    int to_r, to_f;
+};
+
+static struct MoveHistory moveHistory[MOVE_HISTORY_LEN];
+static int moveHistoryIndex = 0;
+
+
+// --- Move History ---
+bool repeats_history(int from_r, int from_f, int to_r, int to_f) {
+    for(int i = 0; i < MOVE_HISTORY_LEN; i++){
+        if(moveHistory[i].from_r == to_r && moveHistory[i].from_f == to_f &&
+           moveHistory[i].to_r   == from_r && moveHistory[i].to_f   == from_f) {
+            return true; // this move would undo a recent move
+        }
+    }
+    return false;
+}
+
+// --- Apply move ---
 void apply_move(const char *move) {
     if (strlen(move) < 4) return;
 
@@ -78,81 +134,64 @@ void apply_move(const char *move) {
         board[to_rank][to_file] = promo;
     }
 
-    log_msg("Move applied: %s (%c from %c%d to %c%d)", move, piece,
-            'a'+from_file, 8-from_rank, 'a'+to_file, 8-to_rank);
-    print_board_log();
+    // Update move history
+    moveHistory[moveHistoryIndex] = (struct MoveHistory){from_rank, from_file, to_rank, to_file};
+    moveHistoryIndex = (moveHistoryIndex + 1) % MOVE_HISTORY_LEN;
 
     sideToMove = (sideToMove == 'w') ? 'b' : 'w';
 }
 
-// --- Helpers ---
-bool on_board(int r, int f) {
-    return r >= 0 && r < 8 && f >= 0 && f < 8;
-}
-
-bool is_my_piece(char piece, char side) {
-    if (piece == '.') return false;
-    return (side=='w') ? isupper(piece) : islower(piece);
-}
-
-bool can_capture(char piece, char side) {
-    if (piece == '.') return true;
-    return !is_my_piece(piece, side);
-}
-
-// --- Move generator ---
+// --- Generate one move ---
 bool generate_one_move(char side) {
-    for (int r = 0; r < 8; r++) {
-        for (int f = 0; f < 8; f++) {
+    struct Move { int from_r, from_f, to_r, to_f; char promo; int score; };
+    struct Move bestMove = {-1,-1,-1,-1,0,-10000};
+
+    for(int r=0;r<8;r++){
+        for(int f=0;f<8;f++){
             char piece = board[r][f];
-            if (!is_my_piece(piece, side)) continue;
+            if(!is_my_piece(piece,side)) continue;
+
+            int dir = (side=='w')?-1:1;
+            int start_row = (side=='w')?6:1;
 
             // --- PAWN ---
-            if ((side=='w' && piece=='P')||(side=='b'&&piece=='p')) {
-                int dir = (side=='w')?-1:1;
-                int start_row = (side=='w')?6:1;
+            if((piece=='P'&&side=='w')||(piece=='p'&&side=='b')){
                 int to_r = r+dir;
 
                 // Forward one
-                if (on_board(to_r,f) && board[to_r][f]=='.') {
+                if(on_board(to_r,f)&&board[to_r][f]=='.'){
                     char promo = ((side=='w'&&to_r==0)||(side=='b'&&to_r==7))?((side=='w')?'Q':'q'):0;
-                    if (promo)
-                        printf("bestmove %c%d%c%d%c\n",'a'+f,8-r,'a'+f,8-to_r,promo);
-                    else
-                        printf("bestmove %c%d%c%d\n",'a'+f,8-r,'a'+f,8-to_r);
-                    fflush(stdout); return true;
+                    int score = promo ? 9 : 1;
+                    if(score>bestMove.score){
+                        bestMove=(struct Move){r,f,to_r,f,promo,score};
+                    }
                 }
 
                 // Forward two
-                if (r==start_row && board[r+dir][f]=='.' && board[r+2*dir][f]=='.') {
-                    int to_r2 = r+2*dir;
-                    printf("bestmove %c%d%c%d\n",'a'+f,8-r,'a'+f,8-to_r2);
-                    fflush(stdout); return true;
+                if(r==start_row && board[r+dir][f]=='.' && board[r+2*dir][f]=='.'){
+                    int to_r2=r+2*dir;
+                    if(1>bestMove.score) bestMove=(struct Move){r,f,to_r2,f,0,1};
                 }
 
                 // Captures
-                for(int df=-1; df<=1; df+=2){
+                for(int df=-1;df<=1;df+=2){
                     int to_f=f+df;
-                    if(on_board(to_r,to_f)&&!is_my_piece(board[to_r][to_f],side)&&board[to_r][to_f]!='.'){
-                        char promo = ((side=='w'&&to_r==0)||(side=='b'&&to_r==7))?((side=='w')?'Q':'q'):0;
-                        if (promo)
-                            printf("bestmove %c%d%c%d%c\n",'a'+f,8-r,'a'+to_f,8-to_r,promo);
-                        else
-                            printf("bestmove %c%d%c%d\n",'a'+f,8-r,'a'+to_f,8-to_r);
-                        fflush(stdout); return true;
+                    if(on_board(to_r,to_f)&&can_capture(board[to_r][to_f],side)&&board[to_r][to_f]!='.'){
+                        int score = piece_value(board[to_r][to_f]) - piece_value(piece);
+                        if(score>bestMove.score) bestMove=(struct Move){r,f,to_r,to_f,((side=='w'&&to_r==0)||(side=='b'&&to_r==7))?((side=='w')?'Q':'q'):0,score};
                     }
                 }
                 continue;
             }
 
             // --- KNIGHT ---
-            if (piece=='N'||piece=='n') {
+            if(piece=='N'||piece=='n'){
                 const int moves[8][2]={{2,1},{1,2},{-1,2},{-2,1},{-2,-1},{-1,-2},{1,-2},{2,-1}};
                 for(int i=0;i<8;i++){
                     int to_r=r+moves[i][0], to_f=f+moves[i][1];
                     if(on_board(to_r,to_f)&&can_capture(board[to_r][to_f],side)){
-                        printf("bestmove %c%d%c%d\n",'a'+f,8-r,'a'+to_f,8-to_r);
-                        fflush(stdout); return true;
+                        int score = board[to_r][to_f]=='.'?3:piece_value(board[to_r][to_f])-3;
+                        if(score>bestMove.score) bestMove=(struct Move){r,f,to_r,to_f,0,score};
                     }
                 }
                 continue;
@@ -170,14 +209,27 @@ bool generate_one_move(char side) {
                 int dr=dirs[d][0], df=dirs[d][1];
                 int to_r=r+dr, to_f=f+df;
                 while(on_board(to_r,to_f)&&can_capture(board[to_r][to_f],side)){
-                    printf("bestmove %c%d%c%d\n",'a'+f,8-r,'a'+to_f,8-to_r);
-                    fflush(stdout);
+                    // Skip move if it undoes a recent move
+                    if(repeats_history(r,f,to_r,to_f)) break;
+
+                    int score = board[to_r][to_f]=='.'?piece_value(piece):piece_value(board[to_r][to_f])-piece_value(piece);
+                    if(score>bestMove.score) bestMove=(struct Move){r,f,to_r,to_f,0,score};
                     if(board[to_r][to_f]!='.'||!sliding) break;
                     to_r+=dr; to_f+=df;
                 }
             }
         }
     }
+
+    if(bestMove.from_r!=-1){
+        if(bestMove.promo)
+            printf("bestmove %c%d%c%d%c\n",'a'+bestMove.from_f,8-bestMove.from_r,'a'+bestMove.to_f,8-bestMove.to_r,bestMove.promo);
+        else
+            printf("bestmove %c%d%c%d\n",'a'+bestMove.from_f,8-bestMove.from_r,'a'+bestMove.to_f,8-bestMove.to_r);
+        fflush(stdout);
+        return true;
+    }
+
     return false;
 }
 

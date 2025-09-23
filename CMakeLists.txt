@@ -23,6 +23,9 @@ add_executable(bot_exec example_bot.c)
 
 add_executable(bot_exec_template base_bot.c)
 
+add_executable(bot_exec_ai bot_ai.c)
+
+
 
 # Link bot_exec with chess library and math library
 target_link_libraries(bot_exec

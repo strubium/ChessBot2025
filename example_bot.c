@@ -186,7 +186,6 @@ int gamestarted = 0;  // 0 = no game, 1 = game started
 
 int main(void) {
     char line[1024];
-    int gamestarted = 0;
     int moves_applied = 0;  // track how many moves we've applied
 
     ensure_dir_exists("C:/Users/hudso/CLionProjects/untitled/logs");

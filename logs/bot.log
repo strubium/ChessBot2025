@@ -14,10 +14,10 @@ pppppppp
 PPPPPPPP
 RNBQKBNR
 Bot is playing as Black
-Received command: isready
-Received command: go wtime 300000 btime 300000 movestogo 40
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5
+Received command: position startpos moves a2a3
+Move applied: a2a3 (P from a2 to a3)
+Current board:
+rnbqkbReceived command: position startpos moves a2a3 b8c6
 Move applied: a2a3 (P from a2 to a3)
 Current board:
 rnbqkbnr
@@ -27,260 +27,310 @@ pppppppp
 ........
 P.......
 .PPPPPPP
-RNBQKBNR
-Move applied: a7a5 (p from a7 to a5)
+RNBQKReceived command: position startpos moves a2a3 b8c6 a3a4
+Move applied: b8c6 (n from b8 to c6)
 Current board:
-rnbqkbnr
-.ppppppp
+r.bqkbnr
+pppppppp
+..n.....
 ........
-p.......
 ........
 P.......
 .PPPPPPP
 RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 297974 movestogo 39
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5
 Move applied: a3a4 (P from a3 to a4)
 Current board:
-rnbqkbnr
-.ppppppp
-........
-p.......
-P.......
-........
-.PPPPPPP
-RNBQKBNR
-Move applied: c7c5 (p from c7 to c5)
+rReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8
+Move applied: a3a4 (P from a3 to a4)
 Current board:
-rnbqkbnr
-.p.ppppp
+r.bqkbnr
+pppppppp
+..n.....
 ........
-p.p.....
+P.......
+........
+.PPPPPPP
+Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5
+Move applied: a8b8 (r from a8 to b8)
+Current board:
+.rbqkbnr
+pppppppp
+..n.....
+........
 P.......
 ........
 .PPPPPPP
 RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 296345 movestogo 38
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5
+Move applied: a4a5 (P from a4 to a5)
+Current boarReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8
+Move applied: a4a5 (P from a4 to a5)
+Current board:
+.rbqkbnr
+pppppppp
+..n.....
+P.......
+........
+........
+.PPPPReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6
+Move applied: b8a8 (r from b8 to a8)
+Current board:
+r.bqkbnr
+pppppppp
+..n.....
+P.......
+........
+........
+.PPPPPPP
+RNBQKBNR
+Move applied: a5a6 (P from a5 to a6)
+CurrentReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8
+Move applied: a5a6 (P from a5 to a6)
+Current board:
+r.bqkbnr
+pppppppp
+P.n.....
+........
+........
+........
+Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7
+Move applied: a8b8 (r from a8 to b8)
+Current board:
+.rbqkbnr
+pppppppp
+P.n.....
+........
+........
+........
+.PPPPPPP
+RNBQKBNR
+Move applied: a6b7 (P from a6 to b7)
+CuReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7
+Move applied: a6b7 (P from a6 to b7)
+Current board:
+.rbqkbnr
+pPpppppp
+..n.....
+........
+........
+.....Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3
+Move applied: b8b7 (r from b8 to b7)
+Current board:
+..bqkbnr
+prpppppp
+..n.....
+........
+........
+........
+.PPPPPPP
+RNBQKBNR
+Move applied: b2b3 (P from b2 to b3Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6
 Move applied: b2b3 (P from b2 to b3)
 Current board:
-rnbqkbnr
-.p.ppppp
+..bqkbnr
+prpppppp
+..n.....
 ........
-p.p.....
-P.......
-.P......
-..PPPPPP
-RNBQKBNR
-Move applied: e7e5 (p from e7 to e5)
+........
+Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4
+Move applied: g8h6 (n from g8 to h6)
 Current board:
-rnbqkbnr
-.p.p.ppp
+..bqkb.r
+prpppppp
+..n....n
 ........
-p.p.p...
-P.......
+........
 .P......
 ..PPPPPP
 RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 293391 movestogo 37
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5
+Move applied: b3b4 (P from b3 Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8
 Move applied: b3b4 (P from b3 to b4)
 Current board:
-rnbqkbnr
-.p.p.ppp
+..bqkb.r
+prpppppp
+..n....n
 ........
-p.p.p...
-PP......
-........
-..PPPPPP
-RNBQKBNR
-Move applied: d7d5 (p from d7 to d5)
+.P...Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5
+Move applied: h8g8 (r from h8 to g8)
 Current board:
-rnbqkbnr
-.p...ppp
+..bqkbr.
+prpppppp
+..n....n
 ........
-p.ppp...
-PP......
+.P......
 ........
 ..PPPPPP
 RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 291782 movestogo 36
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6
+Move applied: b4b5 (P froReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8
 Move applied: b4b5 (P from b4 to b5)
 Current board:
-rnbqkbnr
-.p...ppp
-........
-pPppp...
-P.......
-........
-..PPPPPP
-RNBQKBNR
-Move applied: b7b6 (p from b7 to b6)
+..bqkbr.
+prpppppp
+..n....n
+.P......
+Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6
+Move applied: g8h8 (r from g8 to h8)
 Current board:
-rnbqkbnr
-.....ppp
-.p......
-pPppp...
-P.......
+..bqkb.r
+prpppppp
+..n....n
+.P......
+........
 ........
 ..PPPPPP
 RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 290618 movestogo 35
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5
-Move applied: c2c3 (P from c2 to c3)
+Move applied: b5b6 (Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8
+Move applied: b5b6 (P from b5 to b6)
 Current board:
-rnbqkbnr
-.....ppp
-.p......
-pPppp...
-P.......
-..P.....
-...PPPPP
-RNBQKBNR
-Move applied: f7f5 (p from f7 to f5)
+..bqkb.r
+prpppppp
+.Pn....n
+.....Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7
+Move applied: h8g8 (r from h8 to g8)
 Current board:
-rnbqkbnr
-......pp
-.p......
-pPpppp..
-P.......
-..P.....
-...PPPPP
-RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 289247 movestogo 34
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4
-Move applied: c3c4 (P from c3 to c4)
-Current board:
-rnbqkbnr
-......pp
-.p......
-pPpppp..
-P.P.....
+..bqkbr.
+prpppppp
+.Pn....n
 ........
-...PPPPP
-RNBQKBNR
-Move applied: f5f4 (p from f5 to f4)
-Current board:
-rnbqkbnr
-......pp
-.p......
-pPppp...
-P.P..p..
 ........
-...PPPPP
-RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 288278 movestogo 33
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4 c4d5 d8d5
-Move applied: c4d5 (P from c4 to d5)
-Current board:
-rnbqkbnr
-......pp
-.p......
-pPpPp...
-P....p..
 ........
-...PPPPP
+..PPPPPP
 RNBQKBNR
-Move applied: d8d5 (q from d8 to d5)
+Move applied: bReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8
+Move applied: b6a7 (P from b6 to a7)
 Current board:
-rnb.kbnr
-......pp
-.p......
-pPpqp...
-P....p..
+..bqkbr.
+Prpppppp
+..n....n
+Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q
+Move applied: g8h8 (r from g8 to h8)
+Current board:
+..bqkb.r
+Prpppppp
+..n....n
 ........
-...PPPPP
-RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 285007 movestogo 32
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4 c4d5 d8d5 d2d3 d5d4
-Move applied: d2d3 (P from d2 to d3)
-Current board:
-rnb.kbnr
-......pp
-.p......
-pPpqp...
-P....p..
-...P....
-....PPPP
-RNBQKBNR
-Move applied: d5d4 (q from d5 to d4)
-Current board:
-rnb.kbnr
-......pp
-.p......
-pPp.p...
-P..q.p..
-...P....
-....PPPP
-RNBQKBNR
-Received command: isready
-Received command: go wtime 300000 btime 283678 movestogo 31
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4 c4d5 d8d5 d2d3 d5d4 e2e3 d4d3
-Move applied: e2e3 (P from e2 to e3)
-Current board:
-rnb.kbnr
-......pp
-.p......
-pPp.p...
-P..q.p..
-...PP...
-.....PPP
-RNBQKBNR
-Move applied: d4d3 (q from d4 to d3)
-Current board:
-rnb.kbnr
-......pp
-.p......
-pPp.p...
-P....p..
-...qP...
-.....PPP
-RNBQKBNR
-Received command: isready
-Received command: go wtime 299998 btime 282633 movestogo 30
-Bot to move: White
-Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4 c4d5 d8d5 d2d3 d5d4 e2e3 d4d3 e3e4 d3d1
-Move applied: e3e4 (P from e3 to e4)
-Current board:
-rnb.kbnr
-......pp
-.p......
-pPp.p...
-P...Pp..
-...q....
-.....PPP
-RNBQKBNR
-Move applied: d3d1 (q from d3 to d1)
-Current board:
-rnb.kbnr
-......pp
-.p......
-pPp.p...
-P...Pp..
 ........
-.....PPP
-RNBqKBNR
+........
+..PPPPPP
+RNBQKBNR
+Move applReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8
+Move applied: a7a8Q (P from a7 to a8)
+Current board:
+Q.bqkb.r
+.rpppppp
+..n..Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7
+Move applied: h8g8 (r from h8 to g8)
+Current board:
+Q.bqkbr.
+.rpppppp
+..n....n
+........
+........
+........
+..PPPPPP
+RNBQKBNR
+MoveReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8 a8a7 g8h8
+Move applied: a8a7 (Q from a8 to a7)
+Current board:
+..bqkbr.
+Qrpppppp
+Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7 g8h8 a7a6
+Move applied: g8h8 (r from g8 to h8)
+Current board:
+..bqkb.r
+Qrpppppp
+..n....n
+........
+........
+........
+..PPPPPP
+RNBQKBNRReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8 a8a7 g8h8 a7a6 h8g8
+Move applied: a7a6 (Q from a7 to a6)
+Current board:
+..bqkb.r
+.rpppReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5
+Move applied: h8g8 (r from h8 to g8)
+Current board:
+..bqkbr.
+.rpppppp
+Q.n....n
+........
+........
+........
+..PPPPPP
+RNBQReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8
+Move applied: a6a5 (Q from a6 to a5)
+Current board:
+..bqkbr.
+Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4
+Move applied: g8h8 (r from g8 to h8)
+Current board:
+..bqkb.r
+.rpppppp
+..n....n
+Q.......
+........
+........
+..PPPPPPReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8
+Move applied: a5a4 (Q from a5 to a4)
+Current board:
+..bqkReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3
+Move applied: h8g8 (r from h8 to g8)
+Current board:
+..bqkbr.
+.rpppppp
+..n....n
+........
+Q.......
+........
+..PPReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3 g8h8
+Move applied: a4a3 (Q from a4 to a3)
+Current board:
+Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3 g8h8 a3a2
+Move applied: g8h8 (r from g8 to h8)
+Current board:
+..bqkb.r
+.rpppppp
+..n....n
+........
+........
+Q.......Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3 g8h8 a3a2 h8g8
+Move applied: a3a2 (Q from a3 to a2)
+Current boaReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3 g8h8 a3a2 h8g8 a2a3
+Move applied: h8g8 (r from h8 to g8)
+Current board:
+..bqkbr.
+.rpppppp
+..n....n
+........
+........
+....Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3 g8h8 a3a2 h8g8 a2a3 g8h8
+Move applied: a2a3 (Q from a2 to a3)
+CurrenReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3 g8h8 a3a2 h8g8 a2a3 g8h8 a3a2
+Move applied: g8h8 (r from g8 to h8)
+Current board:
+..bqkb.r
+.rpppppp
+..n....n
+........
+........Received command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8Q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3 g8h8 a3a2 h8g8 a2a3 g8h8 a3a2 h8g8
+Move applied: a3a2 (Q from a3 to a2)
+CReceived command: position startpos moves a2a3 b8c6 a3a4 a8b8 a4a5 b8a8 a5a6 a8b8 a6b7 b8b7 b2b3 g8h6 b3b4 h8g8 b4b5 g8h8 b5b6 h8g8 b6a7 g8h8 a7a8q h8g8 a8a7 g8h8 a7a6 h8g8 a6a5 g8h8 a5a4 h8g8 a4a3 g8h8 a3a2 h8g8 a2a3 g8h8 a3a2 h8g8 a2a3
+Move applied: h8g8 (r from h8 to g8)
+Current board:
+..bqkbr.
+.rpppppp
+..n....n
+........
+....Received command: isready
+NBQKBNR
+Move applied: a2a3 (Q from a2 to a3)
+Current board:
+..bqkbr.
+.rpppppp
+..n....n
+........
+........
+Q.......
+..PPPPPP
+RNBQKBNR
 Received command: isready
-Received command: go wtime 299998 btime 281236 movestogo 29
-Bot to move: White
-Received command: isready
-Received command: quit
-Quitting

@@ -109,43 +109,40 @@ int generate_sliding_moves(int r,int f,char side,Move *moves,int dr[],int df[],i
     return count;
 }
 
-int generate_all_moves(char side, Move *moves) {
-    int count=0;
-    for(int r=0;r<8;r++){
+int generate_all_moves(char s,Move*m){
+    int c=0;
+    int drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1};
+    int drR[]={-1,1,0,0}, dfR[]={0,0,-1,1};
+    int drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1};
+    for(int r=0;r<8;r++)
         for(int f=0;f<8;f++){
-            char p = board[r][f];
-            if(!is_piece_of(p,side, false)) continue;
-            int c=0;
+            char p=board[r][f]; if(!is_piece_of(p,s,0)) continue;
+            int n=0;
             switch(toupper(p)){
-                case 'P': c=generate_pawn_moves(r,f,side,&moves[count]); break;
-                case 'N': c=generate_knight_moves(r,f,side,&moves[count]); break;
-                case 'B': { int dr[]={-1,-1,1,1}, df[]={-1,1,1,-1}; c=generate_sliding_moves(r,f,side,&moves[count],dr,df,4); break;}
-                case 'R': { int dr[]={-1,1,0,0}, df[]={0,0,-1,1}; c=generate_sliding_moves(r,f,side,&moves[count],dr,df,4); break;}
-                case 'Q': { int dr[]={-1,-1,-1,0,1,1,1,0}, df[]={-1,0,1,1,1,0,-1,-1}; c=generate_sliding_moves(r,f,side,&moves[count],dr,df,8); break;}
-                case 'K': { int dr[]={-1,-1,-1,0,1,1,1,0}, df[]={-1,0,1,1,1,0,-1,-1};
+                case 'P': n=generate_pawn_moves(r,f,s,m+c); break;
+                case 'N': n=generate_knight_moves(r,f,s,m+c); break;
+                case 'B': n=generate_sliding_moves(r,f,s,m+c,drB,dfB,4); break;
+                case 'R': n=generate_sliding_moves(r,f,s,m+c,drR,dfR,4); break;
+                case 'Q': n=generate_sliding_moves(r,f,s,m+c,drQ,dfQ,8); break;
+                case 'K': { int drK[]={-1,-1,-1,0,1,1,1,0}, dfK[]={-1,0,1,1,1,0,-1,-1};
                     for(int i=0;i<8;i++){
-                        int nr=r+dr[i], nf=f+df[i];
-                        if(on_board(nr,nf) && !is_piece_of(board[nr][nf],side, false))
-                            moves[count++] = (Move){r,f,nr,nf,board[nr][nf],0};
+                        int nr=r+drK[i], nf=f+dfK[i];
+                        if(on_board(nr,nf) && !is_piece_of(board[nr][nf],s,0))
+                            m[c++] = (Move){r,f,nr,nf,board[nr][nf],0};
                     }
-                    break;
                 }
             }
-            count += c;
+            c+=n;
         }
-    }
-    return count;
+    return c;
 }
 
 // --- King position and check detection ---
-void find_king(char side, int *kr, int *kf){
-    for(int r=0;r<8;r++)
-        for(int f=0;f<8;f++)
-            if(board[r][f]==(side=='w'?'K':'k')){
-                *kr=r; *kf=f;
-                return;
-            }
+void find_piece(char p,int *r,int *f){
+    for(int i=0;i<64;i++)
+        if(board[i/8][i%8]==p){*r=i/8;*f=i%8;return;}
 }
+
 
 bool square_attacked(int r, int f, char by_side){
     Move moves[MAX_MOVES];
@@ -158,7 +155,7 @@ bool square_attacked(int r, int f, char by_side){
 
 bool in_check(char side){
     int kr,kf;
-    find_king(side,&kr,&kf);
+    find_piece(side=='w'?'K':'k', &kr, &kf);
     return square_attacked(kr,kf,(side=='w')?'b':'w');
 }
 

@@ -1,0 +1,286 @@
+Received command: uci
+Received command: isready
+Received command: ucinewgame
+Starting new game
+Received command: position startpos
+Board reset
+Current board:
+rnbqkbnr
+pppppppp
+........
+........
+........
+........
+PPPPPPPP
+RNBQKBNR
+Bot is playing as Black
+Received command: isready
+Received command: go wtime 300000 btime 300000 movestogo 40
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5
+Move applied: a2a3 (P from a2 to a3)
+Current board:
+rnbqkbnr
+pppppppp
+........
+........
+........
+P.......
+.PPPPPPP
+RNBQKBNR
+Move applied: a7a5 (p from a7 to a5)
+Current board:
+rnbqkbnr
+.ppppppp
+........
+p.......
+........
+P.......
+.PPPPPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 297974 movestogo 39
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5
+Move applied: a3a4 (P from a3 to a4)
+Current board:
+rnbqkbnr
+.ppppppp
+........
+p.......
+P.......
+........
+.PPPPPPP
+RNBQKBNR
+Move applied: c7c5 (p from c7 to c5)
+Current board:
+rnbqkbnr
+.p.ppppp
+........
+p.p.....
+P.......
+........
+.PPPPPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 296345 movestogo 38
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5
+Move applied: b2b3 (P from b2 to b3)
+Current board:
+rnbqkbnr
+.p.ppppp
+........
+p.p.....
+P.......
+.P......
+..PPPPPP
+RNBQKBNR
+Move applied: e7e5 (p from e7 to e5)
+Current board:
+rnbqkbnr
+.p.p.ppp
+........
+p.p.p...
+P.......
+.P......
+..PPPPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 293391 movestogo 37
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5
+Move applied: b3b4 (P from b3 to b4)
+Current board:
+rnbqkbnr
+.p.p.ppp
+........
+p.p.p...
+PP......
+........
+..PPPPPP
+RNBQKBNR
+Move applied: d7d5 (p from d7 to d5)
+Current board:
+rnbqkbnr
+.p...ppp
+........
+p.ppp...
+PP......
+........
+..PPPPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 291782 movestogo 36
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6
+Move applied: b4b5 (P from b4 to b5)
+Current board:
+rnbqkbnr
+.p...ppp
+........
+pPppp...
+P.......
+........
+..PPPPPP
+RNBQKBNR
+Move applied: b7b6 (p from b7 to b6)
+Current board:
+rnbqkbnr
+.....ppp
+.p......
+pPppp...
+P.......
+........
+..PPPPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 290618 movestogo 35
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5
+Move applied: c2c3 (P from c2 to c3)
+Current board:
+rnbqkbnr
+.....ppp
+.p......
+pPppp...
+P.......
+..P.....
+...PPPPP
+RNBQKBNR
+Move applied: f7f5 (p from f7 to f5)
+Current board:
+rnbqkbnr
+......pp
+.p......
+pPpppp..
+P.......
+..P.....
+...PPPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 289247 movestogo 34
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4
+Move applied: c3c4 (P from c3 to c4)
+Current board:
+rnbqkbnr
+......pp
+.p......
+pPpppp..
+P.P.....
+........
+...PPPPP
+RNBQKBNR
+Move applied: f5f4 (p from f5 to f4)
+Current board:
+rnbqkbnr
+......pp
+.p......
+pPppp...
+P.P..p..
+........
+...PPPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 288278 movestogo 33
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4 c4d5 d8d5
+Move applied: c4d5 (P from c4 to d5)
+Current board:
+rnbqkbnr
+......pp
+.p......
+pPpPp...
+P....p..
+........
+...PPPPP
+RNBQKBNR
+Move applied: d8d5 (q from d8 to d5)
+Current board:
+rnb.kbnr
+......pp
+.p......
+pPpqp...
+P....p..
+........
+...PPPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 285007 movestogo 32
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4 c4d5 d8d5 d2d3 d5d4
+Move applied: d2d3 (P from d2 to d3)
+Current board:
+rnb.kbnr
+......pp
+.p......
+pPpqp...
+P....p..
+...P....
+....PPPP
+RNBQKBNR
+Move applied: d5d4 (q from d5 to d4)
+Current board:
+rnb.kbnr
+......pp
+.p......
+pPp.p...
+P..q.p..
+...P....
+....PPPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 300000 btime 283678 movestogo 31
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4 c4d5 d8d5 d2d3 d5d4 e2e3 d4d3
+Move applied: e2e3 (P from e2 to e3)
+Current board:
+rnb.kbnr
+......pp
+.p......
+pPp.p...
+P..q.p..
+...PP...
+.....PPP
+RNBQKBNR
+Move applied: d4d3 (q from d4 to d3)
+Current board:
+rnb.kbnr
+......pp
+.p......
+pPp.p...
+P....p..
+...qP...
+.....PPP
+RNBQKBNR
+Received command: isready
+Received command: go wtime 299998 btime 282633 movestogo 30
+Bot to move: White
+Received command: position startpos moves a2a3 a7a5 a3a4 c7c5 b2b3 e7e5 b3b4 d7d5 b4b5 b7b6 c2c3 f7f5 c3c4 f5f4 c4d5 d8d5 d2d3 d5d4 e2e3 d4d3 e3e4 d3d1
+Move applied: e3e4 (P from e3 to e4)
+Current board:
+rnb.kbnr
+......pp
+.p......
+pPp.p...
+P...Pp..
+...q....
+.....PPP
+RNBQKBNR
+Move applied: d3d1 (q from d3 to d1)
+Current board:
+rnb.kbnr
+......pp
+.p......
+pPp.p...
+P...Pp..
+........
+.....PPP
+RNBqKBNR
+Received command: isready
+Received command: go wtime 299998 btime 281236 movestogo 29
+Bot to move: White
+Received command: isready
+Received command: quit
+Quitting

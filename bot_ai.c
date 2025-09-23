@@ -5,6 +5,8 @@
 #define BOARD_SIZE 8
 #define MAX_MOVES 256
 #define MAX_DEPTH 3
+#define PIECE_VAL(p,v) case p: score += v; break;
+
 
 // --- Board ---
 static char board[BOARD_SIZE][BOARD_SIZE];
@@ -13,14 +15,12 @@ static char sideToMove = 'w'; // 'w' = white, 'b' = black
 // --- Helper functions ---
 bool on_board(int r, int f) { return r>=0 && r<8 && f>=0 && f<8; }
 
-bool is_my_piece(char piece, char side) {
-    if(piece=='.') return false;
-    return (side=='w') ? isupper(piece) : islower(piece);
-}
-
-bool is_opponent_piece(char piece, char side) {
-    if(piece=='.') return false;
-    return (side=='w') ? islower(piece) : isupper(piece);
+bool is_piece_of(char piece, char side, bool opponent) {
+    if(piece == '.') return false;
+    bool isWhite = isupper(piece);
+    if(opponent)
+        return (side == 'w') ? !isWhite : isWhite;
+    return (side == 'w') ? isWhite : !isWhite;
 }
 
 // --- Reset board ---
@@ -54,26 +54,17 @@ void undo_move_struct(Move m) {
 
 // --- Board evaluation ---
 int evaluate_board() {
+    static const int piece_value[128] = {
+        ['P']=10, ['N']=30, ['B']=30, ['R']=50, ['Q']=90, ['K']=900,
+        ['p']=-10, ['n']=-30, ['b']=-30, ['r']=-50, ['q']=-90, ['k']=-900
+    };
     int score = 0;
     for(int r=0;r<8;r++)
-        for(int f=0;f<8;f++){
-            switch(board[r][f]){
-                case 'P': score += 10; break;
-                case 'N': score += 30; break;
-                case 'B': score += 30; break;
-                case 'R': score += 50; break;
-                case 'Q': score += 90; break;
-                case 'K': score += 900; break;
-                case 'p': score -= 10; break;
-                case 'n': score -= 30; break;
-                case 'b': score -= 30; break;
-                case 'r': score -= 50; break;
-                case 'q': score -= 90; break;
-                case 'k': score -= 900; break;
-            }
-        }
+        for(int f=0;f<8;f++)
+            score += piece_value[(int)board[r][f]];
     return score;
 }
+
 
 // --- Generate pseudo-legal moves (simplified) ---
 int generate_pawn_moves(int r, int f, char side, Move *moves) {
@@ -86,7 +77,7 @@ int generate_pawn_moves(int r, int f, char side, Move *moves) {
     }
     for(int df=-1;df<=1;df+=2){
         int nf = f+df, nr = r+dir;
-        if(on_board(nr,nf) && is_opponent_piece(board[nr][nf],side))
+        if(on_board(nr,nf) && is_piece_of(board[nr][nf],side, true))
             moves[count++] = (Move){r,f,nr,nf,board[nr][nf],0};
     }
     return count;
@@ -98,7 +89,7 @@ int generate_knight_moves(int r,int f,char side,Move *moves){
     int df[8]={1,2,2,1,-1,-2,-2,-1};
     for(int i=0;i<8;i++){
         int nr=r+dr[i], nf=f+df[i];
-        if(on_board(nr,nf) && !is_my_piece(board[nr][nf],side))
+        if(on_board(nr,nf) && !is_piece_of(board[nr][nf],side, false))
             moves[count++] = (Move){r,f,nr,nf,board[nr][nf],0};
     }
     return count;
@@ -109,9 +100,9 @@ int generate_sliding_moves(int r,int f,char side,Move *moves,int dr[],int df[],i
     for(int i=0;i<n;i++){
         int nr=r+dr[i], nf=f+df[i];
         while(on_board(nr,nf)){
-            if(is_my_piece(board[nr][nf],side)) break;
+            if(is_piece_of(board[nr][nf],side, false)) break;
             moves[count++] = (Move){r,f,nr,nf,board[nr][nf],0};
-            if(is_opponent_piece(board[nr][nf],side)) break;
+            if(is_piece_of(board[nr][nf],side, true)) break;
             nr += dr[i]; nf += df[i];
         }
     }
@@ -123,7 +114,7 @@ int generate_all_moves(char side, Move *moves) {
     for(int r=0;r<8;r++){
         for(int f=0;f<8;f++){
             char p = board[r][f];
-            if(!is_my_piece(p,side)) continue;
+            if(!is_piece_of(p,side, false)) continue;
             int c=0;
             switch(toupper(p)){
                 case 'P': c=generate_pawn_moves(r,f,side,&moves[count]); break;
@@ -134,7 +125,7 @@ int generate_all_moves(char side, Move *moves) {
                 case 'K': { int dr[]={-1,-1,-1,0,1,1,1,0}, df[]={-1,0,1,1,1,0,-1,-1};
                     for(int i=0;i<8;i++){
                         int nr=r+dr[i], nf=f+df[i];
-                        if(on_board(nr,nf) && !is_my_piece(board[nr][nf],side))
+                        if(on_board(nr,nf) && !is_piece_of(board[nr][nf],side, false))
                             moves[count++] = (Move){r,f,nr,nf,board[nr][nf],0};
                     }
                     break;
@@ -186,34 +177,21 @@ int generate_legal_moves(char side, Move *legal_moves){
 }
 
 // --- Minimax ---
-int minimax(int depth,int alpha,int beta,char maximizing_side){
-    if(depth==0) return evaluate_board();
-    Move moves[MAX_MOVES];
-    int n = generate_legal_moves(sideToMove,moves);
-    if(n==0) return evaluate_board();
-    if(sideToMove==maximizing_side){
-        int maxEval=-100000;
-        for(int i=0;i<n;i++){
-            apply_move_struct(moves[i]);
-            int eval = minimax(depth-1,alpha,beta,maximizing_side);
-            undo_move_struct(moves[i]);
-            if(eval>maxEval) maxEval=eval;
-            if(maxEval>alpha) alpha=maxEval;
-            if(beta<=alpha) break;
-        }
-        return maxEval;
-    } else {
-        int minEval=100000;
-        for(int i=0;i<n;i++){
-            apply_move_struct(moves[i]);
-            int eval = minimax(depth-1,alpha,beta,maximizing_side);
-            undo_move_struct(moves[i]);
-            if(eval<minEval) minEval=eval;
-            if(minEval<beta) beta=minEval;
-            if(beta<=alpha) break;
-        }
-        return minEval;
+int minimax(int d,int a,int b,char m){
+    if(d==0) return evaluate_board();
+    Move mv[MAX_MOVES];
+    int n=generate_legal_moves(sideToMove,mv);
+    if(!n) return evaluate_board();
+    int val=m==sideToMove?-100000:100000;
+    for(int i=0;i<n;i++){
+        apply_move_struct(mv[i]);
+        int e=minimax(d-1,a,b,m);
+        undo_move_struct(mv[i]);
+        if(m==sideToMove?(e>val):(e<val)) val=e;
+        if(m==sideToMove && val>a) a=val; else if(m!=sideToMove && val<b) b=val;
+        if(b<=a) break;
     }
+    return val;
 }
 
 // --- Generate best move ---

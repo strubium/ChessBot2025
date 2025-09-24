@@ -48,17 +48,16 @@ void undo_move_struct(Move m) {
 
 // --- Board evaluation ---
 int evaluate_board() {
-    int piece_value[128] = {
-        ['P']=10, ['N']=30, ['B']=30, ['R']=50, ['Q']=90, ['K']=900,
-        ['p']=-10, ['n']=-30, ['b']=-30, ['r']=-50, ['q']=-90, ['k']=-900
-    };
+    int piece_value[128] = { ['P']=10, ['N']=30, ['B']=30, ['R']=50, ['Q']=90, ['K']=900 };
     int score = 0;
     for(int r=0;r<BOARD_SIZE;r++)
-        for(int f=0;f<BOARD_SIZE;f++)
-            score += piece_value[(int)board[r][f]];
+        for(int f=0;f<BOARD_SIZE;f++){
+            char c = board[r][f];
+            if(c!='.')
+                score += (isupper(c)?1:-1) * piece_value[(int)toupper(c)];
+        }
     return score;
 }
-
 
 // --- Generate legal moves (simplified) ---
 int generate_pawn_moves(int r, int f, char side, Move *moves) {

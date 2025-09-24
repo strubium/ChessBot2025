@@ -7,8 +7,8 @@
 #define MAX_DEPTH 3
 
 // --- Board ---
-static char board[BOARD_SIZE][BOARD_SIZE];
-static char sideToMove = 'w'; // 'w' = white, 'b' = black
+char board[BOARD_SIZE][BOARD_SIZE];
+char sideToMove = 'w'; // 'w' = white, 'b' = black
 
 // --- Helper functions ---
 bool on_board(int r, int f) { return r>=0 && r<BOARD_SIZE && f>=0 && f<BOARD_SIZE; }
@@ -48,7 +48,7 @@ void undo_move_struct(Move m) {
 
 // --- Board evaluation ---
 int evaluate_board() {
-    static const int piece_value[128] = {
+    int piece_value[128] = {
         ['P']=10, ['N']=30, ['B']=30, ['R']=50, ['Q']=90, ['K']=900,
         ['p']=-10, ['n']=-30, ['b']=-30, ['r']=-50, ['q']=-90, ['k']=-900
     };

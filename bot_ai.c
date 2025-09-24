@@ -40,12 +40,12 @@ int gen_all(char side,M*m){
  char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1}, dR[]={-1,1,0,0},fR[]={0,0,-1,1}, dQ[]={-1,-1,-1,0,1,1,1,0}, fQ[]={-1,0,1,1,1,0,-1,-1};
  for(int r=0;r<8;r++)for(int f=0;f<8;f++){char p=B[r][f]; if(!P(p,side,0)) continue; int n=0;
   switch(toupper(p)){
-   case'P': n=gen_p(r,f,side,m+c); break;
    case'N': n=gen_n(r,f,side,m+c); break;
    case'B': n=gen_slide(r,f,side,m+c,dB,fB,4); break;
    case'R': n=gen_slide(r,f,side,m+c,dR,fR,4); break;
    case'Q': n=gen_slide(r,f,side,m+c,dQ,fQ,8); break;
    case'K': { char dK[]={-1,-1,-1,0,1,1,1,0}, fK[]={-1,0,1,1,1,0,-1,-1}; for(int i=0;i<8;i++){int nr=r+dK[i],nf=f+fK[i]; if(O(nr,nf)&&!P(B[nr][nf],side,0)) m[c++]=(M){r,f,nr,nf,B[nr][nf],0}; } }
+   default: n=gen_p(r,f,side,m+c); break;
   }
   c+=n;
  }

@@ -8,10 +8,10 @@ char B[8][8],S='w';
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
 int P(p,side,opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
-void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=64;i--;)B[i/8][i%8]=s[i];S='w';}
+reset(){for(int i=64;i--;)B[i/8][i%8]="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR"[i];S='w';}
 
-void am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S^='w'^'b';}
-void um(M m){char pc=B[m.c][m.d];B[m.a][m.b]=m.prom?(isupper(pc)?'P':'p'):pc;B[m.c][m.d]=m.cap;S^='w'^'b';}
+am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S^='w'^'b';}
+um(M m){char pc=B[m.c][m.d];B[m.a][m.b]=m.prom?(isupper(pc)?'P':'p'):pc;B[m.c][m.d]=m.cap;S^='w'^'b';}
 
 pv(c){
  return c=='P'?10:
@@ -52,7 +52,6 @@ gen_all(char s,M*m){
  return c;
 }
 
-
 findp(q,r,f) int *r, *f; {for(int i=0;i<64;i++)if(B[i/8][i%8]==q)*r=i/8,*f=i%8;}
 
 attacked(r,f,by){
@@ -66,12 +65,17 @@ gen_legal(char side,M*out){
  return cnt;
 }
 
-minimax(d,a,b,m){
- if(d==0) return eval();
- M mv[256]; int n=gen_legal(S,mv); if(!n) return eval();
- int val = m==S?-100000:100000;
- for(int i=n;i--;){ am(mv[i]); int e=minimax(d-1,a,b,m); um(mv[i]); if(m==S? (e>val):(e<val)) val=e; if(m==S&&val>a) a=val; if(m!=S&&val<b) b=val; if(b<=a) break; }
- return val;
+minimax(int d,int a,int b,int m){
+ if(!d)return eval();
+ M x[256];int n=gen_legal(S,x);if(!n)return eval();
+ int v=m==S?-100000:100000;
+ for(int i=n;i--;){am(x[i]);int e=minimax(d-1,a,b,m);um(x[i]);
+  if(m==S?e>v:e<v)v=e;
+  if(m==S&&v>a)a=v;
+  if(m!=S&&v<b)b=v;
+  if(b<=a)break;
+ }
+ return v;
 }
 
 void best(){

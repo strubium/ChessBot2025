@@ -6,14 +6,15 @@ typedef struct{int a,b,c,d;char cap,prom;}M;
 char B[8][8],S='w';
 
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
-static int P(char p,char side,int opp){return p!='.' && ((isupper(p) ^ (side=='b')) ^ opp);}
+int P(char p,char side,int opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
 void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=0;i<64;i++)B[i/8][i%8]=s[i];S='w';}
 
 void am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S ^= 'w'^'b';}
 void um(M m){char pc=B[m.c][m.d];B[m.a][m.b]= m.prom ? (isupper(pc)?'P':'p') : pc; B[m.c][m.d]=m.cap; S ^= 'w'^'b';}
 
-int pv(char c){switch(c){case'P':return 10;case'N':case'B':return 30;case'R':return 50;case'Q':return 90;case'K':return 900;}return 0;}
+int pv(char c){switch(c){case'P':return 10;case'N':case'B':return 30;case'R':return 50;case'Q':return 90;default: return 900;}}
+
 int eval(){int s=0;for(int i=0;i<64;i++){char c=B[i/8][i%8]; if(c!='.') s+=(isupper(c)?1:-1)*pv(toupper(c));}return s;}
 
 int gen_p(int r,int f,char side,M*m){
@@ -37,14 +38,14 @@ int gen_slide(int r,int f,char side,M*m,char dr[],char df[],int n){
 
 int gen_all(char side,M*m){
  int c=0;
- char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1}, dR[]={-1,1,0,0},fR[]={0,0,-1,1}, dQ[]={-1,-1,-1,0,1,1,1,0}, fQ[]={-1,0,1,1,1,0,-1,-1};
+ char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1}, dR[]={-1,1,0,0},fR[]={0,0,-1,1}, dQ[]={-1,-1,-1,0,1,1,1,0}, fQ[]={-1,0,1,1,1,0,-1,-1}, dK[]={-1,-1,-1,0,1,1,1,0}, fK[]={-1,0,1,1,1,0,-1,-1};
  for(int r=0;r<8;r++)for(int f=0;f<8;f++){char p=B[r][f]; if(!P(p,side,0)) continue; int n=0;
   switch(toupper(p)){
    case'N': n=gen_n(r,f,side,m+c); break;
    case'B': n=gen_slide(r,f,side,m+c,dB,fB,4); break;
    case'R': n=gen_slide(r,f,side,m+c,dR,fR,4); break;
    case'Q': n=gen_slide(r,f,side,m+c,dQ,fQ,8); break;
-   case'K': { char dK[]={-1,-1,-1,0,1,1,1,0}, fK[]={-1,0,1,1,1,0,-1,-1}; for(int i=0;i<8;i++){int nr=r+dK[i],nf=f+fK[i]; if(O(nr,nf)&&!P(B[nr][nf],side,0)) m[c++]=(M){r,f,nr,nf,B[nr][nf],0}; } }
+   case'K': { for(int i=0;i<8;i++){int nr=r+dK[i],nf=f+fK[i]; if(O(nr,nf)&&!P(B[nr][nf],side,0)) m[c++]=(M){r,f,nr,nf,B[nr][nf],0}; } }
    default: n=gen_p(r,f,side,m+c); break;
   }
   c+=n;
@@ -81,17 +82,17 @@ void best(){
 
 int main(void){
  char line[512];
- while(fgets(line,sizeof line,stdin)){
+ while(fgets(line,512,stdin)){
   line[strcspn(line,"\r\n")]=0;
   if(strcmp(line,"uci")==0){printf("id name bot\nid author s\nuciok\n");fflush(stdout);}
-  else if(strcmp(line,"isready")==0){printf("readyok\n");fflush(stdout);}
-  else if(strcmp(line,"ucinewgame")==0) reset();
-  else if(strncmp(line,"position",8)==0){
+  if(strcmp(line,"isready")==0){printf("readyok\n");fflush(stdout);}
+  if(strcmp(line,"ucinewgame")==0) reset();
+  if(strncmp(line,"position",8)==0){
     if(strstr(line,"startpos")) reset();
     char*ms=strstr(line,"moves");
     if(ms){ ms+=6; char*t=strtok(ms," "); while(t){ int a=t[0]-'a',b='8'-t[1],c=t[2]-'a',d='8'-t[3]; char e=B[b][a]; B[d][c]=e; B[b][a]='.'; if(strlen(t)==5) B[d][c]=(isupper(e)?toupper(t[4]):tolower(t[4])); S = S=='w'?'b':'w'; t=strtok(NULL," "); } }
   }
-  else if(strncmp(line,"go",2)==0) best();
-  else if(strcmp(line,"quit")==0) break;
+  if(strncmp(line,"go",2)==0) best();
+  if(strcmp(line,"quit")==0) break;
  }
 }

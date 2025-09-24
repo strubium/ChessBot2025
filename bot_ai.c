@@ -19,7 +19,7 @@ bool is_piece_of(char piece, char side, bool opponent) {
 
 // --- Reset board ---
 void reset_board() {
-    const char *start[BOARD_SIZE] = {
+    char *start[BOARD_SIZE] = {
         "rnbqkbnr","pppppppp","........","........",
         "........","........","PPPPPPPP","RNBQKBNR"
     };
@@ -36,14 +36,14 @@ void apply_move_struct(Move m) {
     char piece = board[m.from_r][m.from_f];
     board[m.to_r][m.to_f] = (m.promoted) ? m.promoted : piece;
     board[m.from_r][m.from_f] = '.';
-    sideToMove = (sideToMove=='w') ? 'b' : 'w';
+    sideToMove ^= 'w'^'b';
 }
 
 void undo_move_struct(Move m) {
     char piece = board[m.to_r][m.to_f];
     board[m.from_r][m.from_f] = (m.promoted) ? ((isupper(piece))?'P':'p') : piece;
     board[m.to_r][m.to_f] = m.captured;
-    sideToMove = (sideToMove=='w') ? 'b' : 'w';
+    sideToMove ^= 'w'^'b';
 }
 
 // --- Board evaluation ---
@@ -149,7 +149,7 @@ bool square_attacked(int r, int f, char by_side){
 bool in_check(char side){
     int kr,kf;
     find_piece(side=='w'?'K':'k', &kr, &kf);
-    return square_attacked(kr,kf,(side=='w')?'b':'w');
+    return square_attacked(kr,kf,side^'w'^'b');
 }
 
 // --- Legal move generation ---
@@ -194,7 +194,7 @@ void generate_best_move(){
         apply_move_struct(moves[i]);
         int eval = minimax(MAX_DEPTH,-100000,100000,sideToMove);
         undo_move_struct(moves[i]);
-        if((sideToMove=='w' && eval>bestEval) || (sideToMove=='b' && eval<bestEval)){
+        if((eval>bestEval)^(sideToMove=='b')){
             bestEval=eval;
             bestIdx=i;
         }

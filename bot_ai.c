@@ -58,7 +58,7 @@ int gen_all(char side,M*m){
  return c;
 }
 
-void findp(char q,int *r,int *f){for(int i=0;i<64;i++) if(B[i/8][i%8]==q){*r=i/8;*f=i%8;return;}}
+void findp(char q,int*r,int*f){for(int i=0;i<64;i++)if(B[i/8][i%8]==q)*r=i/8,*f=i%8;}
 
 int attacked(r,f,by){
  M mv[256]; int n=gen_all(by,mv); for(int i=0;i<n;i++) if(mv[i].c==r && mv[i].d==f) return 1; return 0;
@@ -75,7 +75,7 @@ int minimax(d,a,b,m){
  if(d==0) return eval();
  M mv[256]; int n=gen_legal(S,mv); if(!n) return eval();
  int val = m==S?-100000:100000;
- for(int i=0;i<n;i++){ am(mv[i]); int e=minimax(d-1,a,b,m); um(mv[i]); if(m==S? (e>val):(e<val)) val=e; if(m==S&&val>a) a=val; else if(m!=S&&val<b) b=val; if(b<=a) break; }
+ for(int i=n;i--;){ am(mv[i]); int e=minimax(d-1,a,b,m); um(mv[i]); if(m==S? (e>val):(e<val)) val=e; if(m==S&&val>a) a=val; else if(m!=S&&val<b) b=val; if(b<=a) break; }
  return val;
 }
 

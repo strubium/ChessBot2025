@@ -210,19 +210,19 @@ void generate_best_move(){
 int main(void){
     char line[1024];
 
-    while(fgets(line,sizeof(line),stdin)){
+    while(fgets(line,1024, stdin)){
         line[strcspn(line,"\r\n")]=0;
 
         if(strcmp(line,"uci")==0){
             printf("id name bot\nid author s\nuciok\n"); fflush(stdout);
         }
-        else if(strcmp(line,"isready")==0){
+        if(strcmp(line,"isready")==0){
             printf("readyok\n"); fflush(stdout);
         }
-        else if(strcmp(line,"ucinewgame")==0){
+        if(strcmp(line,"ucinewgame")==0){
             reset_board();
         }
-        else if(strncmp(line,"position",8)==0){
+        if(strncmp(line,"position",8)==0){
             if(strstr(line,"startpos")) reset_board();
             char *moves_str = strstr(line,"moves");
             if(moves_str){
@@ -239,12 +239,11 @@ int main(void){
                     tok=strtok(NULL," ");
             }
         }
-        else if(strncmp(line,"go",2)==0){
+        if(strncmp(line,"go",2)==0){
             generate_best_move();
         }
-        else if(strcmp(line,"quit")==0){
+        if(strcmp(line,"quit")==0){
             break;
         }
     }
-    return 0;
 }

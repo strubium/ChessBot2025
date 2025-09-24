@@ -5,32 +5,26 @@
 #define BOARD_SIZE 8
 #define MAX_MOVES 256
 #define MAX_DEPTH 3
-#define PIECE_VAL(p,v) case p: score += v; break;
-
 
 // --- Board ---
 static char board[BOARD_SIZE][BOARD_SIZE];
 static char sideToMove = 'w'; // 'w' = white, 'b' = black
 
 // --- Helper functions ---
-bool on_board(int r, int f) { return r>=0 && r<8 && f>=0 && f<8; }
+bool on_board(int r, int f) { return r>=0 && r<BOARD_SIZE && f>=0 && f<BOARD_SIZE; }
 
 bool is_piece_of(char piece, char side, bool opponent) {
-    if(piece == '.') return false;
-    bool isWhite = isupper(piece);
-    if(opponent)
-        return (side == 'w') ? !isWhite : isWhite;
-    return (side == 'w') ? isWhite : !isWhite;
+    return piece != '.' && ((isupper(piece) ^ (side=='b')) ^ opponent);
 }
 
 // --- Reset board ---
 void reset_board() {
-    const char *start[8] = {
+    const char *start[BOARD_SIZE] = {
         "rnbqkbnr","pppppppp","........","........",
         "........","........","PPPPPPPP","RNBQKBNR"
     };
-    for(int r=0;r<8;r++)
-        for(int f=0;f<8;f++)
+    for(int r=0;r<BOARD_SIZE;r++)
+        for(int f=0;f<BOARD_SIZE;f++)
             board[r][f] = start[r][f];
     sideToMove = 'w';
 }
@@ -59,14 +53,14 @@ int evaluate_board() {
         ['p']=-10, ['n']=-30, ['b']=-30, ['r']=-50, ['q']=-90, ['k']=-900
     };
     int score = 0;
-    for(int r=0;r<8;r++)
-        for(int f=0;f<8;f++)
+    for(int r=0;r<BOARD_SIZE;r++)
+        for(int f=0;f<BOARD_SIZE;f++)
             score += piece_value[(int)board[r][f]];
     return score;
 }
 
 
-// --- Generate pseudo-legal moves (simplified) ---
+// --- Generate legal moves (simplified) ---
 int generate_pawn_moves(int r, int f, char side, Move *moves) {
     int dir = (side=='w')?-1:1;
     int count=0;
@@ -85,9 +79,9 @@ int generate_pawn_moves(int r, int f, char side, Move *moves) {
 
 int generate_knight_moves(int r,int f,char side,Move *moves){
     int count=0;
-    int dr[8]={-2,-1,1,2,2,1,-1,-2};
-    int df[8]={1,2,2,1,-1,-2,-2,-1};
-    for(int i=0;i<8;i++){
+    int dr[BOARD_SIZE]={-2,-1,1,2,2,1,-1,-2};
+    int df[BOARD_SIZE]={1,2,2,1,-1,-2,-2,-1};
+    for(int i=0;i<BOARD_SIZE;i++){
         int nr=r+dr[i], nf=f+df[i];
         if(on_board(nr,nf) && !is_piece_of(board[nr][nf],side, false))
             moves[count++] = (Move){r,f,nr,nf,board[nr][nf],0};
@@ -114,8 +108,8 @@ int generate_all_moves(char s,Move*m){
     int drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1};
     int drR[]={-1,1,0,0}, dfR[]={0,0,-1,1};
     int drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1};
-    for(int r=0;r<8;r++)
-        for(int f=0;f<8;f++){
+    for(int r=0;r<BOARD_SIZE;r++)
+        for(int f=0;f<BOARD_SIZE;f++){
             char p=board[r][f]; if(!is_piece_of(p,s,0)) continue;
             int n=0;
             switch(toupper(p)){
@@ -221,7 +215,7 @@ int main(void){
         line[strcspn(line,"\r\n")]=0;
 
         if(strcmp(line,"uci")==0){
-            printf("id name AI_Bot\nid author You\nuciok\n"); fflush(stdout);
+            printf("id name bot\nid author s\nuciok\n"); fflush(stdout);
         }
         else if(strcmp(line,"isready")==0){
             printf("readyok\n"); fflush(stdout);

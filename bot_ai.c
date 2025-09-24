@@ -41,24 +41,23 @@ gen_slide(int r,int f,char side,M*m,char dr[],char df[],int n){
  return c;
 }
 
-gen_all(char side,M*m){
- int c=0;
- char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1}, dR[]={-1,1,0,0},fR[]={0,0,-1,1}, dQ[]={-1,-1,-1,0,1,1,1,0}, fQ[]={-1,0,1,1,1,0,-1,-1}, dK[]={-1,-1,-1,0,1,1,1,0}, fK[]={-1,0,1,1,1,0,-1,-1};
- for(int r=0;r<8;r++)for(int f=0;f<8;f++){char p=B[r][f]; if(!P(p,side,0)) continue; int n=0;
-  switch(toupper(p)){
-   case'N': n=gen_n(r,f,side,m+c); break;
-   case'B': n=gen_slide(r,f,side,m+c,dB,fB,4); break;
-   case'R': n=gen_slide(r,f,side,m+c,dR,fR,4); break;
-   case'Q': n=gen_slide(r,f,side,m+c,dQ,fQ,8); break;
-   case'K': { for(int i=0;i<8;i++){int nr=r+dK[i],nf=f+fK[i]; if(O(nr,nf)&&!P(B[nr][nf],side,0)) m[c++]=(M){r,f,nr,nf,B[nr][nf],0}; } }
-   default: n=gen_p(r,f,side,m+c); break;
-  }
-  c+=n;
- }
+gen_all(char s,M*m){
+ int c=0;char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1},dR[]={-1,1,0,0},fR[]={0,0,-1,1},
+ dQ[]={-1,-1,-1,0,1,1,1,0},fQ[]={-1,0,1,1,1,0,-1,-1};
+ for(int r=0;r<8;r++)for(int f=0;f<8;f++){char p=B[r][f];if(P(p,s,0)){
+  switch(p&~32){
+   case'N':c+=gen_n(r,f,s,m+c);break;
+   case'B':c+=gen_slide(r,f,s,m+c,dB,fB,4);break;
+   case'R':c+=gen_slide(r,f,s,m+c,dR,fR,4);break;
+   case'Q':c+=gen_slide(r,f,s,m+c,dQ,fQ,8);break;
+   case'K':for(int i=0;i<8;i++){int nr=r+dQ[i],nf=f+fQ[i];if(O(nr,nf)&&!P(B[nr][nf],s,0))m[c++]=(M){r,f,nr,nf,B[nr][nf],0};}
+   default:c+=gen_p(r,f,s,m+c);
+  }}}
  return c;
 }
 
-void findp(char q,int*r,int*f){for(int i=0;i<64;i++)if(B[i/8][i%8]==q)*r=i/8,*f=i%8;}
+
+findp(q,r,f) int *r, *f; {for(int i=0;i<64;i++)if(B[i/8][i%8]==q)*r=i/8,*f=i%8;}
 
 attacked(r,f,by){
  M mv[256]; int n=gen_all(by,mv); for(int i=0;i<n;i++) if(mv[i].c==r && mv[i].d==f) return 1; return 0;
@@ -85,19 +84,10 @@ void best(){
  if(n){M*p=&mv[b]; printf("bestmove %c%d%c%d\n",'a'+p->b,8-p->a,'a'+p->d,8-p->c); fflush(stdout);}
 }
 
-main(){
- char line[512];
- while(fgets(line,512,stdin)){
-  line[strcspn(line,"\r\n")]=0;
-  if(strcmp(line,"uci")==0) printf("id name bot\nid author s\nuciok\n"), fflush(stdout);
-  if(strcmp(line,"isready")==0)printf("readyok\n"), fflush(stdout);
-  if(strcmp(line,"ucinewgame")==0) reset();
-  if(strncmp(line,"position",8)==0){
-    if(strstr(line,"startpos")) reset();
-    char*ms=strstr(line,"moves");
-    if(ms){ ms+=6; char*t=strtok(ms," "); while(t){ int a=t[0]-'a',b='8'-t[1],c=t[2]-'a',d='8'-t[3]; char e=B[b][a]; B[d][c]=e; B[b][a]='.'; if(strlen(t)==5) B[d][c]=isupper(e)?toupper(t[4]):tolower(t[4]); S = S=='w'?'b':'w'; t=strtok(NULL," "); } }
-  }
-  if(strncmp(line,"go",2)==0) best();
-  if(strcmp(line,"quit")==0) break;
- }
-}
+main(){char l[512];while(fgets(l,512,stdin)){l[strcspn(l,"\r\n")]=0;
+ if(!strcmp(l,"uci"))printf("id name bot\nid author s\nuciok\n"),fflush(stdout);
+ if(!strcmp(l,"isready"))printf("readyok\n"),fflush(stdout);
+ if(!strcmp(l,"ucinewgame"))reset();
+ if(!strncmp(l,"position",8)){if(strstr(l,"startpos"))reset();char*ms=strstr(l,"moves");if(ms){ms+=6;char*t=strtok(ms," ");while(t){int a=t[0]-'a',b='8'-t[1],c=t[2]-'a',d='8'-t[3];char e=B[b][a];B[d][c]=e;B[b][a]='.';if(strlen(t)==5)B[d][c]=isupper(e)?toupper(t[4]):tolower(t[4]);S^='w'^'b';t=strtok(0," ");}}}
+ if(!strncmp(l,"go",2))best();
+ if(!strcmp(l,"quit"))break;}}

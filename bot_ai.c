@@ -89,8 +89,8 @@ int main(void){
  char line[512];
  while(fgets(line,512,stdin)){
   line[strcspn(line,"\r\n")]=0;
-  if(strcmp(line,"uci")==0){printf("id name bot\nid author s\nuciok\n");fflush(stdout);}
-  if(strcmp(line,"isready")==0){printf("readyok\n");fflush(stdout);}
+  if(strcmp(line,"uci")==0) printf("id name bot\nid author s\nuciok\n"), fflush(stdout);
+  if(strcmp(line,"isready")==0)printf("readyok\n"), fflush(stdout);
   if(strcmp(line,"ucinewgame")==0) reset();
   if(strncmp(line,"position",8)==0){
     if(strstr(line,"startpos")) reset();

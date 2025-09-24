@@ -2,11 +2,11 @@
 #include <string.h>
 #include <ctype.h>
 
-typedef struct{int a,b,c,d;char cap,prom;}M;
+typedef struct{int a,b,c,d,cap,prom;}M;
 char B[8][8],S='w';
 
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
-int P(char p,char side,int opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
+int P(p,side,opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
 void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=64;i--;)B[i/8][i%8]=s[i];S='w';}
 

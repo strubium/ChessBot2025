@@ -35,11 +35,7 @@ gen_n(int r,int f,char side,M*m){
  return c;
 }
 
-gen_slide(int r,int f,char side,M*m,char dr[],char df[],int n){
- int c=0;
- for(int i=n;i--;){int nr=r+dr[i],nf=f+df[i];while(O(nr,nf)){ if(P(B[nr][nf],side,0)) break; m[c++]=(M){r,f,nr,nf,B[nr][nf],0}; if(P(B[nr][nf],side,1)) break; nr+=dr[i]; nf+=df[i];}}
- return c;
-}
+gen_slide(int r,int f,char s,M*m,char dr[],char df[],int n){int c=0;for(int i=n;i--;)for(int nr=r+dr[i],nf=f+df[i];O(nr,nf);nr+=dr[i],nf+=df[i]){if(P(B[nr][nf],s,0))break;m[c++]=(M){r,f,nr,nf,B[nr][nf],0};if(P(B[nr][nf],s,1))break;}return c;}
 
 gen_all(char s,M*m){
  int c=0;char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1},dR[]={-1,1,0,0},fR[]={0,0,-1,1},

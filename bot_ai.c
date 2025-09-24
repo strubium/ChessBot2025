@@ -6,9 +6,9 @@ typedef struct{int a,b,c,d;char cap,prom;}M;
 char B[8][8],S='w';
 
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
-static inline int P(char p,char side,int opp){return p!='.' && ((isupper(p) ^ (side=='b')) ^ opp);}
+static int P(char p,char side,int opp){return p!='.' && ((isupper(p) ^ (side=='b')) ^ opp);}
 
-void reset(){const char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=0;i<64;i++)B[i/8][i%8]=s[i];S='w';}
+void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=0;i<64;i++)B[i/8][i%8]=s[i];S='w';}
 
 void am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S ^= 'w'^'b';}
 void um(M m){char pc=B[m.c][m.d];B[m.a][m.b]= m.prom ? (isupper(pc)?'P':'p') : pc; B[m.c][m.d]=m.cap; S ^= 'w'^'b';}
@@ -29,7 +29,7 @@ int gen_n(int r,int f,char side,M*m){
  return c;
 }
 
-int gen_slide(int r,int f,char side,M*m,const char dr[],const char df[],int n){
+int gen_slide(int r,int f,char side,M*m,char dr[],char df[],int n){
  int c=0;
  for(int i=0;i<n;i++){int nr=r+dr[i],nf=f+df[i];while(O(nr,nf)){ if(P(B[nr][nf],side,0)) break; m[c++]=(M){r,f,nr,nf,B[nr][nf],0}; if(P(B[nr][nf],side,1)) break; nr+=dr[i]; nf+=df[i];}}
  return c;
@@ -37,7 +37,7 @@ int gen_slide(int r,int f,char side,M*m,const char dr[],const char df[],int n){
 
 int gen_all(char side,M*m){
  int c=0;
- const char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1}, dR[]={-1,1,0,0},fR[]={0,0,-1,1}, dQ[]={-1,-1,-1,0,1,1,1,0}, fQ[]={-1,0,1,1,1,0,-1,-1};
+ char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1}, dR[]={-1,1,0,0},fR[]={0,0,-1,1}, dQ[]={-1,-1,-1,0,1,1,1,0}, fQ[]={-1,0,1,1,1,0,-1,-1};
  for(int r=0;r<8;r++)for(int f=0;f<8;f++){char p=B[r][f]; if(!P(p,side,0)) continue; int n=0;
   switch(toupper(p)){
    case'P': n=gen_p(r,f,side,m+c); break;

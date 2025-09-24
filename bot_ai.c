@@ -185,26 +185,7 @@ int minimax(int d,int a,int b,char m){
 }
 
 // --- Generate best move ---
-void generate_best_move(){
-    Move moves[MAX_MOVES];
-    int n = generate_legal_moves(sideToMove,moves);
-    int bestEval = (sideToMove=='w')?-100000:100000;
-    int bestIdx = 0;
-    for(int i=0;i<n;i++){
-        apply_move_struct(moves[i]);
-        int eval = minimax(MAX_DEPTH,-100000,100000,sideToMove);
-        undo_move_struct(moves[i]);
-        if((eval>bestEval)^(sideToMove=='b')){
-            bestEval=eval;
-            bestIdx=i;
-        }
-    }
-    if(n>0){
-        Move m = moves[bestIdx];
-        printf("bestmove %c%d%c%d\n",'a'+m.from_f,8-m.from_r,'a'+m.to_f,8-m.to_r);
-        fflush(stdout);
-    }
-}
+void generate_best_move(){int i,n,b=0,e=(sideToMove=='w')?-1e5:1e5;Move m[MAX_MOVES];for(n=generate_legal_moves(sideToMove,m),i=0;i<n;i++){apply_move_struct(m[i]);int v=minimax(MAX_DEPTH,-1e5,1e5,sideToMove);undo_move_struct(m[i]);if((v>e)^(sideToMove=='b'))e=v,b=i;}if(n){Move *p=&m[b];printf("bestmove %c%d%c%d\n",'a'+p->from_f,8-p->from_r,'a'+p->to_f,8-p->to_r);fflush(stdout);}}
 
 // --- Main UCI loop ---
 int main(void){

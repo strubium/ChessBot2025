@@ -13,13 +13,18 @@ void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNB
 void am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S ^= 'w'^'b';}
 void um(M m){char pc=B[m.c][m.d];B[m.a][m.b]= m.prom ? (isupper(pc)?'P':'p') : pc; B[m.c][m.d]=m.cap; S ^= 'w'^'b';}
 
-int pv(char c){switch(c){case'P':return 10;case'N':case'B':return 30;case'R':return 50;case'Q':return 90;default: return 900;}}
+int pv(c){
+ return c=='P'?10:
+        c=='N'||c=='B'?30:
+        c=='R'?50:
+        c=='Q'?90:900;
+}
 
 int eval(){int s=0;for(int i=0;i<64;i++){char c=B[i/8][i%8]; if(c!='.') s+=(isupper(c)?1:-1)*pv(toupper(c));}return s;}
 
 int gen_p(int r,int f,char side,M*m){
  int d=(side=='w')?-1:1,cnt=0;
- if(O(r+d,f)&&B[r+d][f]=='.'){m[cnt++]=(M){r,f,r+d,f,'.',0}; if((r==(side=='w'?6:1))&&B[r+2*d][f]=='.')m[cnt++]=(M){r,f,r+2*d,f,'.',0};}
+ if(O(r+d,f)&&B[r+d][f]=='.'){m[cnt++]=(M){r,f,r+d,f,'.',0}; if(r==(side=='w'?6:1)&&B[r+2*d][f]=='.')m[cnt++]=(M){r,f,r+2*d,f,'.',0};}
  for(int df=-1;df<=1;df+=2){int nr=r+d,nf=f+df;if(O(nr,nf)&&P(B[nr][nf],side,1))m[cnt++]=(M){r,f,nr,nf,B[nr][nf],0};}
  return cnt;
 }
@@ -55,10 +60,10 @@ int gen_all(char side,M*m){
 
 void findp(char q,int *r,int *f){for(int i=0;i<64;i++) if(B[i/8][i%8]==q){*r=i/8;*f=i%8;return;}}
 
-int attacked(int r,int f,char by){
+int attacked(r,f,by){
  M mv[256]; int n=gen_all(by,mv); for(int i=0;i<n;i++) if(mv[i].c==r && mv[i].d==f) return 1; return 0;
 }
-int inchk(char side){int kr,kf; findp(side=='w'?'K':'k',&kr,&kf); return attacked(kr,kf,side^'w'^'b');}
+int inchk(side){int kr,kf; findp(side=='w'?'K':'k',&kr,&kf); return attacked(kr,kf,side^'w'^'b');}
 
 int gen_legal(char side,M*out){
  M mv[256]; int n=gen_all(side,mv),cnt=0;
@@ -66,17 +71,17 @@ int gen_legal(char side,M*out){
  return cnt;
 }
 
-int minimax(int d,int a,int b,char m){
+int minimax(d,a,b,m){
  if(d==0) return eval();
  M mv[256]; int n=gen_legal(S,mv); if(!n) return eval();
- int val = (m==S)?-100000:100000;
+ int val = m==S?-100000:100000;
  for(int i=0;i<n;i++){ am(mv[i]); int e=minimax(d-1,a,b,m); um(mv[i]); if(m==S? (e>val):(e<val)) val=e; if(m==S&&val>a) a=val; else if(m!=S&&val<b) b=val; if(b<=a) break; }
  return val;
 }
 
 void best(){
- int i,b=0,e=(S=='w')?-100000:100000; M mv[256]; int n=gen_legal(S,mv);
- for(i=0;i<n;i++){ am(mv[i]); int v=minimax(3,-100000,100000,S); um(mv[i]); if((v>e)^(S=='b')) e=v,b=i; }
+ int i,b=0,e=S=='w'?-100000:100000; M mv[256]; int n=gen_legal(S,mv);
+ for(i=0;i<n;i++){ am(mv[i]); int v=minimax(3,-100000,100000,S); um(mv[i]); if(v>e^S=='b') e=v,b=i; }
  if(n){M*p=&mv[b]; printf("bestmove %c%d%c%d\n",'a'+p->b,8-p->a,'a'+p->d,8-p->c); fflush(stdout);}
 }
 
@@ -90,7 +95,7 @@ int main(void){
   if(strncmp(line,"position",8)==0){
     if(strstr(line,"startpos")) reset();
     char*ms=strstr(line,"moves");
-    if(ms){ ms+=6; char*t=strtok(ms," "); while(t){ int a=t[0]-'a',b='8'-t[1],c=t[2]-'a',d='8'-t[3]; char e=B[b][a]; B[d][c]=e; B[b][a]='.'; if(strlen(t)==5) B[d][c]=(isupper(e)?toupper(t[4]):tolower(t[4])); S = S=='w'?'b':'w'; t=strtok(NULL," "); } }
+    if(ms){ ms+=6; char*t=strtok(ms," "); while(t){ int a=t[0]-'a',b='8'-t[1],c=t[2]-'a',d='8'-t[3]; char e=B[b][a]; B[d][c]=e; B[b][a]='.'; if(strlen(t)==5) B[d][c]=isupper(e)?toupper(t[4]):tolower(t[4]); S = S=='w'?'b':'w'; t=strtok(NULL," "); } }
   }
   if(strncmp(line,"go",2)==0) best();
   if(strcmp(line,"quit")==0) break;

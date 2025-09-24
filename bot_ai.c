@@ -8,7 +8,7 @@ char B[8][8],S='w';
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
 int P(p,side,opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
-void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=64;i--;)B[i/8][i%8]=s[i];S='w';}
+void reset(){auto s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=64;i--;)B[i/8][i%8]=s[i];S='w';}
 
 void am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S^='w'^'b';}
 void um(M m){char pc=B[m.c][m.d];B[m.a][m.b]=m.prom?(isupper(pc)?'P':'p'):pc;B[m.c][m.d]=m.cap;S^='w'^'b';}
@@ -42,9 +42,8 @@ int gen_slide(int r,int f,char side,M*m,char dr[],char df[],int n){
 }
 
 int gen_all(char side,M*m){
- int c=0;
- char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1}, dR[]={-1,1,0,0},fR[]={0,0,-1,1}, dQ[]={-1,-1,-1,0,1,1,1,0}, fQ[]={-1,0,1,1,1,0,-1,-1}, dK[]={-1,-1,-1,0,1,1,1,0}, fK[]={-1,0,1,1,1,0,-1,-1};
- for(int r=0;r<8;r++)for(int f=0;f<8;f++){char p=B[r][f]; if(!P(p,side,0)) continue; int n=0;
+ int dB[]={-1,-1,1,1},fB[]={-1,1,1,-1}, dR[]={-1,1,0,0},fR[]={0,0,-1,1}, dQ[]={-1,-1,-1,0,1,1,1,0}, fQ[]={-1,0,1,1,1,0,-1,-1}, dK[]={-1,-1,-1,0,1,1,1,0}, fK[]={-1,0,1,1,1,0,-1,-1},n=0, c=0;
+ for(int r=0;r<8;r++)for(int f=0;f<8;f++){char p=B[r][f]; if(!P(p,side,0)) continue;
   switch(toupper(p)){
    case'N': n=gen_n(r,f,side,m+c); break;
    case'B': n=gen_slide(r,f,side,m+c,dB,fB,4); break;

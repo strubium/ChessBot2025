@@ -228,19 +228,15 @@ int main(void){
             if(moves_str){
                 moves_str+=6;
                 char *tok=strtok(moves_str," ");
-                while(tok){
-                    int from_f = tok[0]-'a', from_r='8'-tok[1];
-                    int to_f   = tok[2]-'a', to_r  ='8'-tok[3];
-                    char piece = board[from_r][from_f];
-                    board[to_r][to_f]=piece;
-                    board[from_r][from_f]='.';
-                    if(strlen(tok)==5){
-                        char promo = tok[4];
-                        board[to_r][to_f] = (isupper(piece))?toupper(promo):tolower(promo);
-                    }
-                    sideToMove = (sideToMove=='w')?'b':'w';
+                int a,b,c,d; char e;
+                while(tok)
+                    a=tok[0]-'a', b='8'-tok[1],
+                    c=tok[2]-'a', d='8'-tok[3],
+                    e=board[b][a],
+                    board[d][c]=e, board[b][a]='.',
+                    strlen(tok)==5?(board[d][c]=(isupper(e)?toupper(tok[4]):tolower(tok[4]))):0,
+                    sideToMove=sideToMove=='w'?'b':'w',
                     tok=strtok(NULL," ");
-                }
             }
         }
         else if(strncmp(line,"go",2)==0){

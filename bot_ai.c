@@ -21,7 +21,7 @@ bool is_piece_of(char piece, char side, bool opponent) {
 void reset_board() {
     const char *start[BOARD_SIZE] = {
         "rnbqkbnr","pppppppp","........","........",
-        "........","........","r","RNBQKBNR"
+        "........","........","PPPPPPPP","RNBQKBNR"
     };
     for(int r=0;r<BOARD_SIZE;r++)
         for(int f=0;f<BOARD_SIZE;f++)
@@ -167,23 +167,22 @@ int generate_legal_moves(char side, Move *legal_moves){
 }
 
 // --- Minimax ---
-int minimax(d,a,b,m)
-int d,a,b;
-char m;
-{
-    if(!d) return evaluate_board();
+int minimax(int d,int a,int b,char m){
+    if(d==0) return evaluate_board();
     Move mv[MAX_MOVES];
-    int n=generate_legal_moves(sideToMove,mv), val=m==sideToMove?-100000:100000;
+    int n=generate_legal_moves(sideToMove,mv);
+    if(!n) return evaluate_board();
+    int val=m==sideToMove?-100000:100000;
     for(int i=0;i<n;i++){
         apply_move_struct(mv[i]);
         int e=minimax(d-1,a,b,m);
         undo_move_struct(mv[i]);
-        if(m==sideToMove?e>val:e<val) val=e;
-        if(m==sideToMove?a<val?a=val:b>val?b=val:0:b<=a) break;
+        if(m==sideToMove?(e>val):(e<val)) val=e;
+        if(m==sideToMove && val>a) a=val; else if(m!=sideToMove && val<b) b=val;
+        if(b<=a) break;
     }
     return val;
 }
-
 
 // --- Generate best move ---
 void generate_best_move(){

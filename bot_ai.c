@@ -10,8 +10,8 @@ int P(p,side,opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
 void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=64;i--;)B[i/8][i%8]=s[i];S='w';}
 
-void am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S ^= 'w'^'b';}
-void um(M m){char pc=B[m.c][m.d];B[m.a][m.b]= m.prom ? (isupper(pc)?'P':'p') : pc; B[m.c][m.d]=m.cap; S ^= 'w'^'b';}
+void am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S^='w'^'b';}
+void um(M m){char pc=B[m.c][m.d];B[m.a][m.b]=m.prom?(isupper(pc)?'P':'p'):pc;B[m.c][m.d]=m.cap;S^='w'^'b';}
 
 int pv(c){
  return c=='P'?10:
@@ -23,14 +23,14 @@ int pv(c){
 int eval(){int s=0;for(int i=0;i<64;i++){char c=B[i/8][i%8]; if(c!='.') s+=(isupper(c)?1:-1)*pv(toupper(c));}return s;}
 
 int gen_p(int r,int f,char side,M*m){
- int d=(side=='w')?-1:1,cnt=0;
+ int d=side=='w'?-1:1,cnt=0;
  if(O(r+d,f)&&B[r+d][f]=='.'){m[cnt++]=(M){r,f,r+d,f,'.',0}; if(r==(side=='w'?6:1)&&B[r+2*d][f]=='.')m[cnt++]=(M){r,f,r+2*d,f,'.',0};}
  for(int df=-1;df<=1;df+=2){int nr=r+d,nf=f+df;if(O(nr,nf)&&P(B[nr][nf],side,1))m[cnt++]=(M){r,f,nr,nf,B[nr][nf],0};}
  return cnt;
 }
 
 int gen_n(int r,int f,char side,M*m){
- char dr[]={-2,-1,1,2,2,1,-1,-2},df[]={1,2,2,1,-1,-2,-2,-1};int c=0;
+ int dr[]={-2,-1,1,2,2,1,-1,-2},df[]={1,2,2,1,-1,-2,-2,-1},c=0;
  for(int i=8;i--;){int nr=r+dr[i],nf=f+df[i]; if(O(nr,nf)&&!P(B[nr][nf],side,0)) m[c++]=(M){r,f,nr,nf,B[nr][nf],0};}
  return c;
 }

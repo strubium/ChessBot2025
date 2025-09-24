@@ -8,7 +8,7 @@ char B[8][8],S='w';
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
 int P(char p,char side,int opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
-void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=0;i<64;i++)B[i/8][i%8]=s[i];S='w';}
+void reset(){char*s="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";for(int i=64;i--;)B[i/8][i%8]=s[i];S='w';}
 
 void am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S ^= 'w'^'b';}
 void um(M m){char pc=B[m.c][m.d];B[m.a][m.b]= m.prom ? (isupper(pc)?'P':'p') : pc; B[m.c][m.d]=m.cap; S ^= 'w'^'b';}
@@ -31,13 +31,13 @@ int gen_p(int r,int f,char side,M*m){
 
 int gen_n(int r,int f,char side,M*m){
  char dr[]={-2,-1,1,2,2,1,-1,-2},df[]={1,2,2,1,-1,-2,-2,-1};int c=0;
- for(int i=0;i<8;i++){int nr=r+dr[i],nf=f+df[i]; if(O(nr,nf)&&!P(B[nr][nf],side,0)) m[c++]=(M){r,f,nr,nf,B[nr][nf],0};}
+ for(int i=8;i--;){int nr=r+dr[i],nf=f+df[i]; if(O(nr,nf)&&!P(B[nr][nf],side,0)) m[c++]=(M){r,f,nr,nf,B[nr][nf],0};}
  return c;
 }
 
 int gen_slide(int r,int f,char side,M*m,char dr[],char df[],int n){
  int c=0;
- for(int i=0;i<n;i++){int nr=r+dr[i],nf=f+df[i];while(O(nr,nf)){ if(P(B[nr][nf],side,0)) break; m[c++]=(M){r,f,nr,nf,B[nr][nf],0}; if(P(B[nr][nf],side,1)) break; nr+=dr[i]; nf+=df[i];}}
+ for(int i=n;i--;){int nr=r+dr[i],nf=f+df[i];while(O(nr,nf)){ if(P(B[nr][nf],side,0)) break; m[c++]=(M){r,f,nr,nf,B[nr][nf],0}; if(P(B[nr][nf],side,1)) break; nr+=dr[i]; nf+=df[i];}}
  return c;
 }
 
@@ -80,7 +80,7 @@ int minimax(d,a,b,m){
 }
 
 void best(){
- int i,b=0,e=S=='w'?-100000:100000; M mv[256]; int n=gen_legal(S,mv);
+ M mv[256];int i,b=0,n=gen_legal(S,mv),e=S=='w'?-100000:100000;
  for(i=0;i<n;i++){ am(mv[i]); int v=minimax(3,-100000,100000,S); um(mv[i]); if(v>e^S=='b') e=v,b=i; }
  if(n){M*p=&mv[b]; printf("bestmove %c%d%c%d\n",'a'+p->b,8-p->a,'a'+p->d,8-p->c); fflush(stdout);}
 }

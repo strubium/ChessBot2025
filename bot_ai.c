@@ -37,27 +37,35 @@ gen_n(int r,int f,char side,M*m){
 
 gen_slide(int r,int f,char s,M*m,char dr[],char df[],int n){int c=0;for(int i=n;i--;)for(int nr=r+dr[i],nf=f+df[i];O(nr,nf);nr+=dr[i],nf+=df[i]){if(P(B[nr][nf],s,0))break;m[c++]=(M){r,f,nr,nf,B[nr][nf],0};if(P(B[nr][nf],s,1))break;}return c;}
 
+
+int n;
 gen_all(char s,M*m){
- int c=0;char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1},dR[]={-1,1,0,0},fR[]={0,0,-1,1},
+ n=0;
+ char dB[]={-1,-1,1,1},fB[]={-1,1,1,-1},dR[]={-1,1,0,0},fR[]={0,0,-1,1},
  dQ[]={-1,-1,-1,0,1,1,1,0},fQ[]={-1,0,1,1,1,0,-1,-1};
  for(int r=0;r<8;r++)for(int f=0;f<8;f++){char p=B[r][f];if(P(p,s,0)){
   switch(p&~32){
-   case'N':c+=gen_n(r,f,s,m+c);break;
-   case'B':c+=gen_slide(r,f,s,m+c,dB,fB,4);break;
-   case'R':c+=gen_slide(r,f,s,m+c,dR,fR,4);break;
-   case'Q':c+=gen_slide(r,f,s,m+c,dQ,fQ,8);break;
-   case'K':for(int i=0;i<8;i++){int nr=r+dQ[i],nf=f+fQ[i];if(O(nr,nf)&&!P(B[nr][nf],s,0))m[c++]=(M){r,f,nr,nf,B[nr][nf],0};}
-   default:c+=gen_p(r,f,s,m+c);
+   case'N':n+=gen_n(r,f,s,m+n);break;
+   case'B':n+=gen_slide(r,f,s,m+n,dB,fB,4);break;
+   case'R':n+=gen_slide(r,f,s,m+n,dR,fR,4);break;
+   case'Q':n+=gen_slide(r,f,s,m+n,dQ,fQ,8);break;
+   case'K':for(int i=0;i<8;i++){int nr=r+dQ[i],nf=f+fQ[i];
+    if(O(nr,nf)&&!P(B[nr][nf],s,0))m[n++]=(M){r,f,nr,nf,B[nr][nf],0};}
+   default:n+=gen_p(r,f,s,m+n);
   }}}
- return c;
+ return n;
 }
-
-findp(q,r,f) int *r, *f; {for(int i=0;i<64;i++)if(B[i/8][i%8]==q)*r=i/8,*f=i%8;}
 
 attacked(r,f,by){
- M mv[256]; int n=gen_all(by,mv); for(int i=0;i<n;i++) if(mv[i].c==r && mv[i].d==f) return 1; return 0;
+ M mv[256];
+ for(n=gen_all(by,mv);n--;)if(mv[n].c==r&&mv[n].d==f)return 1;
+ return 0;
 }
-inchk(side){int kr,kf; findp(side=='w'?'K':'k',&kr,&kf); return attacked(kr,kf,side^'w'^'b');}
+
+findp(q,r,f)int *r,*f;{int i;for(i=0;i<64;i++)if(B[i/8][i%8]==q){*r=i/8;*f=i%8;return;}}
+
+inchk(side){int kr,kf;findp(side=='w'?'K':'k',&kr,&kf);return attacked(kr,kf,side^'w'^'b');}
+
 
 gen_legal(char side,M*out){
  M mv[256]; int n=gen_all(side,mv),cnt=0;
@@ -78,7 +86,7 @@ minimax(int d,int a,int b,int m){
  return v;
 }
 
-void best(){
+best(){
  M mv[256];int i,b=0,n=gen_legal(S,mv),e=S=='w'?-100000:100000;
  for(i=0;i<n;i++){ am(mv[i]); int v=minimax(3,-100000,100000,S); um(mv[i]); if(v>e^S=='b') e=v,b=i; }
  if(n){M*p=&mv[b]; printf("bestmove %c%d%c%d\n",'a'+p->b,8-p->a,'a'+p->d,8-p->c); fflush(stdout);}

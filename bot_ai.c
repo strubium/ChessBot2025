@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
-typedef struct{int a,b,c,d,cap,prom;} M;
-char B[8][8],S='w';
+typedef struct{int a,b,c,d,cap,prom;}M;B[8][8],S='w',drN[]={-2,-1,1,2,2,1,-1,-2}, dfN[]={1,2,2,1,-1,-2,-2,-1}, drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1}, drR[]={-1,1,0,0}, dfR[]={0,0,-1,1}, drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1};
 
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
+
 int P(p,side,opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
 reset(){for(int i=64;i--;)B[i/8][i%8]="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR"[i];S='w';}
@@ -17,7 +16,7 @@ pv(c){return c=='P'?10:c=='N'||c=='B'?30:c=='R'?50:c=='Q'?90:900;}
 eval(){int s=0;for(int i=0;i<64;i++){char c=B[i/8][i%8];if(c!='.')s+=(isupper(c)?1:-1)*pv(toupper(c));}return s;}
 
 gen_moves(char s,M*m){
-    int n=0, drN[]={-2,-1,1,2,2,1,-1,-2}, dfN[]={1,2,2,1,-1,-2,-2,-1}, drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1}, drR[]={-1,1,0,0}, dfR[]={0,0,-1,1}, drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1};
+    int n=0;
     for(int r=0;r<8;r++)for(int f=0;f<8;f++){
         char p=B[r][f]; if(!P(p,s,0)) continue;
         switch(toupper(p)){

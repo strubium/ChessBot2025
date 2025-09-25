@@ -62,9 +62,7 @@ attacked(r,f,by){
  return 0;
 }
 
-findp(q,r,f)int *r,*f;{int i;for(i=0;i<64;i++)if(B[i/8][i%8]==q){*r=i/8;*f=i%8;return;}}
-
-inchk(side){int kr,kf;findp(side=='w'?'K':'k',&kr,&kf);return attacked(kr,kf,side^'w'^'b');}
+inchk(s){int i;for(i=0;i<64;i++)if(B[i/8][i%8]==(s=='w'?'K':'k'))return attacked(i/8,i%8,s^'w'^'b');}
 
 
 gen_legal(char side,M*out){

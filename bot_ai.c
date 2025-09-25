@@ -17,18 +17,14 @@ pv(c){return c=='P'?10:c=='N'||c=='B'?30:c=='R'?50:c=='Q'?90:900;}
 eval(){int s=0;for(int i=0;i<64;i++){char c=B[i/8][i%8];if(c!='.')s+=(isupper(c)?1:-1)*pv(toupper(c));}return s;}
 
 gen_moves(char s,M*m){
-    int n=0;
-    int drN[]={-2,-1,1,2,2,1,-1,-2}, dfN[]={1,2,2,1,-1,-2,-2,-1};
-    int drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1};
-    int drR[]={-1,1,0,0}, dfR[]={0,0,-1,1};
-    int drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1};
+    int n=0, drN[]={-2,-1,1,2,2,1,-1,-2}, dfN[]={1,2,2,1,-1,-2,-2,-1}, drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1}, drR[]={-1,1,0,0}, dfR[]={0,0,-1,1}, drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1};
     for(int r=0;r<8;r++)for(int f=0;f<8;f++){
         char p=B[r][f]; if(!P(p,s,0)) continue;
         switch(toupper(p)){
             case 'P': {
-                int d=(s=='w'? -1:1);
+                int d=s=='w'? -1:1;
                 if(O(r+d,f)&&B[r+d][f]=='.') m[n++] = (M){r,f,r+d,f,'.',0};
-                if((r==(s=='w'?6:1)) && B[r+d][f]=='.' && B[r+2*d][f]=='.') m[n++] = (M){r,f,r+2*d,f,'.',0};
+                if(r==(s=='w'?6:1) && B[r+d][f]=='.' && B[r+2*d][f]=='.') m[n++] = (M){r,f,r+2*d,f,'.',0};
                 for(int df=-1;df<=1;df+=2){int nr=r+d,nf=f+df;if(O(nr,nf)&&P(B[nr][nf],s,1)) m[n++] = (M){r,f,nr,nf,B[nr][nf],0};}
             } break;
             case 'N': for(int i=0;i<8;i++){int nr=r+drN[i],nf=f+dfN[i]; if(O(nr,nf)&&!P(B[nr][nf],s,0)) m[n++] = (M){r,f,nr,nf,B[nr][nf],0};} break;
@@ -45,20 +41,22 @@ gen_moves(char s,M*m){
                     }
                 }
             } break;
-            case 'K': for(int i=0;i<8;i++){int nr=r+drQ[i], nf=f+dfQ[i]; if(O(nr,nf)&&!P(B[nr][nf],s,0)) m[n++] = (M){r,f,nr,nf,B[nr][nf],0};} break;
+            default: for(int i=0;i<8;i++){int nr=r+drQ[i], nf=f+dfQ[i]; if(O(nr,nf)&&!P(B[nr][nf],s,0)) m[n++] = (M){r,f,nr,nf,B[nr][nf],0};} break;
         }
     }
     return n;
 }
 
-attacked(r,f,by){
-    M mv[256]; for(int i=gen_moves(by,mv);i--;) if(mv[i].c==r && mv[i].d==f) return 1;
-    return 0;
-}
-
 gen_legal(char s,M*o){
-    M m[256]; int n=gen_moves(s,m),c=0,i,j;
-    for(i=0;i<n;i++){am(m[i]);for(j=0;j<64;j++) if(B[j/8][j%8]==(s=='w'?'K':'k')) break; if(!attacked(j/8,j%8,s^'w'^'b')) o[c++]=m[i]; um(m[i]);}
+    M m[256],v[256];int n=gen_moves(s,m),c=0,i,j,k;
+    for(i=0;i<n;i++){
+        am(m[i]);
+        for(j=0;j<64;j++) if(B[j/8][j%8]==(s=='w'?'K':'k')) break;
+        for(k=gen_moves(s^'w'^'b',v);k--;) if(v[k].c==j/8&&v[k].d==j%8) goto x;
+        o[c++]=m[i];
+        x:;
+        um(m[i]);
+    }
     return c;
 }
 

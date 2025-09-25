@@ -62,14 +62,7 @@ attacked(r,f,by){
  return 0;
 }
 
-inchk(s){int i;for(i=0;i<64;i++)if(B[i/8][i%8]==(s=='w'?'K':'k'))return attacked(i/8,i%8,s^'w'^'b');}
-
-
-gen_legal(char side,M*out){
- M mv[256]; int n=gen_all(side,mv),cnt=0;
- for(int i=0;i<n;i++){ am(mv[i]); if(!inchk(side)) out[cnt++]=mv[i]; um(mv[i]); }
- return cnt;
-}
+gen_legal(char s,M*o){M m[256];int n=gen_all(s,m),c=0,i,j;for(i=0;i<n;i++){am(m[i]);for(j=0;j<64;j++)if(B[j/8][j%8]==(s=='w'?'K':'k'))break;if(!attacked(j/8,j%8,s^'w'^'b'))o[c++]=m[i];um(m[i]);}return c;}
 
 minimax(d, a, b, m){
  if(!d)return eval();

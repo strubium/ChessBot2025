@@ -5,7 +5,7 @@ typedef struct{int a,b,c,d,cap,prom;}M;B[8][8],S='w',drN[]={-2,-1,1,2,2,1,-1,-2}
 
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
 
-int P(p,side,opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
+P(p,side,opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
 reset(){for(int i=64;i--;)B[i/8][i%8]="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR"[i];S='w';}
 

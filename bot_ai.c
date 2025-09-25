@@ -73,7 +73,7 @@ gen_legal(char side,M*out){
  return cnt;
 }
 
-minimax(int d,int a,int b,int m){
+minimax(d, a, b, m){
  if(!d)return eval();
  M x[256];int n=gen_legal(S,x);if(!n)return eval();
  int v=m==S?-100000:100000;

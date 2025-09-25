@@ -9,8 +9,7 @@ int P(p,side,opp){return p!='.' && isupper(p) ^ side=='b' ^ opp;}
 
 reset(){for(int i=64;i--;)B[i/8][i%8]="rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR"[i];S='w';}
 
-am(M m){char pc=B[m.a][m.b];B[m.c][m.d]=m.prom?m.prom:pc;B[m.a][m.b]='.';S^='w'^'b';}
-um(M m){char pc=B[m.c][m.d];B[m.a][m.b]=m.prom?(isupper(pc)?'P':'p'):pc;B[m.c][m.d]=m.cap;S^='w'^'b';}
+mdo(M m,int u){char pc=B[u?m.c:m.a][u?m.d:m.b];B[u?m.a:m.c][u?m.b:m.d]=m.prom?(isupper(pc)?'P':'p'):pc;B[u?m.c:m.a][u?m.d:m.b]=u?m.cap:'.';S^='w'^'b';}
 
 pv(c){return c=='P'?10:c=='N'||c=='B'?30:c=='R'?50:c=='Q'?90:900;}
 eval(){int s=0;for(int i=0;i<64;i++){char c=B[i/8][i%8];if(c!='.')s+=(isupper(c)?1:-1)*pv(toupper(c));}return s;}
@@ -49,12 +48,12 @@ gen_moves(char s,M*m){
 gen_legal(char s,M*o){
     M m[256],v[256];int c=0,i,j,k;
     for(i=0;i<gen_moves(s,m);i++){
-        am(m[i]);
+        mdo(m[i],0);
         for(j=0;j<64;j++) if(B[j/8][j%8]==(s=='w'?'K':'k')) break;
         for(k=gen_moves(s^'w'^'b',v);k--;) if(v[k].c==j/8&&v[k].d==j%8) goto x;
         o[c++]=m[i];
         x:;
-        um(m[i]);
+        mdo(m[i],1);
     }
     return c;
 }
@@ -63,7 +62,7 @@ minimax(d,a,b,m){
     if(!d) return eval();
     M x[256]; int n=gen_legal(S,x); if(!n) return eval();
     int v=m==S?-100000:100000;
-    for(int i=n;i--;){ am(x[i]); int e=minimax(d-1,a,b,m); um(x[i]);
+    for(int i=n;i--;){ mdo(x[i],0); int e=minimax(d-1,a,b,m); mdo(x[i],1);
         if(m==S?e>v:e<v)v=e;
         if(m==S&&v>a)a=v;
         if(m!=S&&v<b)b=v;
@@ -74,7 +73,7 @@ minimax(d,a,b,m){
 
 best(){
     M mv[256]; int i,b=0,n=gen_legal(S,mv),e=S=='w'?-100000:100000;
-    for(i=0;i<n;i++){ am(mv[i]); int v=minimax(3,-100000,100000,S); um(mv[i]); if(v>e^S=='b') e=v,b=i; }
+    for(i=0;i<n;i++){ mdo(mv[i],0); int v=minimax(3,-100000,100000,S); mdo(mv[i],1); if(v>e^S=='b') e=v,b=i; }
     if(n){M*p=&mv[b]; printf("bestmove %c%d%c%d\n",'a'+p->b,8-p->a,'a'+p->d,8-p->c); fflush(stdout);}
 }
 

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-typedef struct{int a,b,c,d,cap,prom;}M;B[8][8],S='w',drN[]={-2,-1,1,2,2,1,-1,-2}, dfN[]={1,2,2,1,-1,-2,-2,-1}, drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1}, drR[]={-1,1,0,0}, dfR[]={0,0,-1,1}, drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1};
+typedef struct{int a,b,c,d,cap,prom;}M;B[8][8],S='w',drN[]={-2,-1,1,2,2,1,-1,-2}, dfN[]={1,2,2,1,-1,-2,-2,-1}, drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1}, drR[]={-1,1,0,0}, dfR[]={0,0,-1,1}, drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1}, uk = 100000;
 
 #define O(r,f) ((r)>=0&&(r)<8&&(f)>=0&&(f)<8)
 
@@ -61,7 +61,7 @@ gen_legal(char s,M*o){
 minimax(d,a,b,m){
     if(!d) return eval();
     M x[256]; int n=gen_legal(S,x); if(!n) return eval();
-    int v=m==S?-100000:100000;
+    int v=m==S?-uk:uk;
     for(int i=n;i--;){ mdo(x[i],0); int e=minimax(d-1,a,b,m); mdo(x[i],1);
         if(m==S?e>v:e<v)v=e;
         if(m==S&&v>a)a=v;
@@ -72,8 +72,8 @@ minimax(d,a,b,m){
 }
 
 best(){
-    M mv[256]; int i,b=0,n=gen_legal(S,mv),e=S=='w'?-100000:100000;
-    for(i=0;i<n;i++){ mdo(mv[i],0); int v=minimax(3,-100000,100000,S); mdo(mv[i],1); if(v>e^S=='b') e=v,b=i; }
+    M mv[256]; int i,b=0,n=gen_legal(S,mv),e=S=='w'?-uk:uk;
+    for(i=0;i<n;i++){ mdo(mv[i],0); int v=minimax(3,-uk,uk,S); mdo(mv[i],1); if(v>e^S=='b') e=v,b=i; }
     if(n){M*p=&mv[b]; printf("bestmove %c%d%c%d\n",'a'+p->b,8-p->a,'a'+p->d,8-p->c); fflush(stdout);}
 }
 

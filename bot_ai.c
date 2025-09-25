@@ -47,8 +47,8 @@ gen_moves(char s,M*m){
 }
 
 gen_legal(char s,M*o){
-    M m[256],v[256];int n=gen_moves(s,m),c=0,i,j,k;
-    for(i=0;i<n;i++){
+    M m[256],v[256];int c=0,i,j,k;
+    for(i=0;i<gen_moves(s,m);i++){
         am(m[i]);
         for(j=0;j<64;j++) if(B[j/8][j%8]==(s=='w'?'K':'k')) break;
         for(k=gen_moves(s^'w'^'b',v);k--;) if(v[k].c==j/8&&v[k].d==j%8) goto x;

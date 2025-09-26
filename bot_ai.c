@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#define MAX_HISTORY 256
-
 // --- Piece values ---
 int piece_value(PieceType piece) {
     switch(piece) {
@@ -13,7 +11,7 @@ int piece_value(PieceType piece) {
         case BISHOP: return 330;
         case ROOK: return 500;
         case QUEEN: return 900;
-        default: return 10000; //king
+        default: return 10000; // king
     }
 }
 
@@ -34,7 +32,6 @@ int evaluate_board(Board *board, uint64_t history[], int history_len) {
             repeat_count++;
 
     score -= repeat_count * 500; // strong penalty to avoid cycles
-
     return score;
 }
 
@@ -79,12 +76,7 @@ int minimax(Board *board, int depth, bool maximizing, uint64_t history[], int hi
 
         // Make move and add board hash to history
         chess_make_move(board, moves[i]);
-        if (history_len < MAX_HISTORY) {
-            history[history_len++] = chess_zobrist_key(board);
-        } else {
-            memmove(&history[0], &history[1], sizeof(uint64_t) * (MAX_HISTORY - 1));
-            history[MAX_HISTORY - 1] = chess_zobrist_key(board);
-        }
+        history[history_len++] = chess_zobrist_key(board);
 
         int score = minimax(board, depth - 1, !maximizing, history, history_len);
         chess_undo_move(board);
@@ -92,9 +84,8 @@ int minimax(Board *board, int depth, bool maximizing, uint64_t history[], int hi
 
         score += maximizing ? capture_bonus : -capture_bonus;
 
-        if ((maximizing && score > best_score) || (!maximizing && score < best_score)) {
+        if ((maximizing && score > best_score) || (!maximizing && score < best_score))
             best_score = score;
-        }
     }
 
     chess_free_moves_array(moves);
@@ -121,12 +112,7 @@ Move find_best_move(Board *board, int depth, uint64_t history[], int history_len
 
         // Make move and add hash
         chess_make_move(board, moves[i]);
-        if (history_len < MAX_HISTORY) {
-            history[history_len++] = chess_zobrist_key(board);
-        } else {
-            memmove(&history[0], &history[1], sizeof(uint64_t) * (MAX_HISTORY - 1));
-            history[MAX_HISTORY - 1] = chess_zobrist_key(board);
-        }
+        history[history_len++] = chess_zobrist_key(board);
 
         int score = minimax(board, depth - 1, !maximizing, history, history_len);
         chess_undo_move(board);
@@ -145,7 +131,7 @@ Move find_best_move(Board *board, int depth, uint64_t history[], int history_len
 }
 
 int main(void) {
-    uint64_t board_history[MAX_HISTORY];
+    uint64_t board_history[1024]; // large enough buffer
     int history_len = 0;
 
     for (int i = 0; i < 500; i++) {
@@ -159,12 +145,7 @@ int main(void) {
 
         // Push move and add hash to history
         chess_push(best);
-        if (history_len < MAX_HISTORY) {
-            board_history[history_len++] = chess_zobrist_key(board);
-        } else {
-            memmove(&board_history[0], &board_history[1], sizeof(uint64_t) * (MAX_HISTORY - 1));
-            board_history[MAX_HISTORY - 1] = chess_zobrist_key(board);
-        }
+        board_history[history_len++] = chess_zobrist_key(board);
 
         chess_done();
         chess_free_board(board);

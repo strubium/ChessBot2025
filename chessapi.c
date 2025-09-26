@@ -1,16 +1,19 @@
 #include "chessapi.h"
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <semaphore.h>
 #include <time.h>
 
 #define CHESS_BOT_NAME "My Chess Bot"
 #define BOT_AUTHOR_NAME "Author Name Here"
 
+#ifdef _WIN32
+#include "tinycthread.h"  // Windows: tinycthread provides C11 threads
+#else
+#include <threads.h>      // Unix/Linux: use native C11 threads
+#endif
 // ray direction constants (last 8 for knights)
 #define DIR_N 0
 #define DIR_NE 1
@@ -30,15 +33,46 @@
 #define DIR_SEE 15
 
 typedef struct {
-    pthread_t uci_thread;
+    volatile int locks;
+    mtx_t locks_mutex;
+    cnd_t wait_cnd;
+} Semaphore;
+
+void semaphore_init(Semaphore *sem, int locks) {
+    sem->locks = locks;
+    mtx_init(&sem->locks_mutex, mtx_plain);
+    cnd_init(&sem->wait_cnd);
+}
+
+void semaphore_post(Semaphore *sem) {
+    mtx_lock(&sem->locks_mutex);
+    sem->locks++;
+    mtx_unlock(&sem->locks_mutex);
+    cnd_signal(&sem->wait_cnd);
+}
+
+void semaphore_wait(Semaphore *sem) {
+    mtx_lock(&sem->locks_mutex);
+    while (sem->locks == 0) {
+        cnd_wait(&sem->wait_cnd, &sem->locks_mutex);
+    }
+    sem->locks--;
+    mtx_unlock(&sem->locks_mutex);
+}
+
+typedef struct {
+    // pthread_t uci_thread;
+    thrd_t uci_thread;
     Board *shared_board;
-    long wtime;
-    long btime;
+    uint64_t wtime;
+    uint64_t btime;
     clock_t turn_started_time;
     Move latest_pushed_move;
     Move latest_opponent_move;
-    pthread_mutex_t mutex;
-    sem_t intermission_mutex;
+    // pthread_mutex_t mutex;
+    mtx_t mutex;
+    // sem_t intermission_mutex;
+    Semaphore intermission_mutex;
 } InternalAPI;
 
 typedef uint64_t BitBoard;
@@ -75,17 +109,17 @@ static InternalAPI *API = NULL;
 static uint64_t zobrist_keys[781];
 
 static int highest_bit(BitBoard v) {
-    const unsigned long b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000, 0xFFFFFFFF00000000};
-    const unsigned long S[] = {1, 2, 4, 8, 16, 32};
+    const uint64_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000, 0xFFFFFFFF00000000};
+    const uint64_t S[] = {1, 2, 4, 8, 16, 32};
     int i;
 
-    register unsigned long r = 0; // result of log2(v) will go here
+    uint64_t r = 0; // result of log2(v) will go here
     for (i = 5; i >= 0; i--) {
         if (v & b[i])
         {
             v >>= S[i];
             r |= S[i];
-        } 
+        }
     }
     return (int)r;
 }
@@ -101,7 +135,7 @@ PieceType chess_get_piece_from_bitboard(Board *board, BitBoard bitboard) {
     if (bitboard & (board->bb_white_knight | board->bb_black_knight)) return KNIGHT;
     if (bitboard & (board->bb_white_bishop | board->bb_black_bishop)) return BISHOP;
     if (bitboard & (board->bb_white_king | board->bb_black_king)) return KING;
-    return 0;  // empty square!
+    return (PieceType)0;  // empty square!
 }
 
 PlayerColor chess_get_color_from_index(Board *board, int index) {
@@ -117,7 +151,7 @@ PlayerColor chess_get_color_from_bitboard(Board *board, BitBoard bitboard) {
         | board->bb_black_rook;
     if ((bitboard & all_pieces_white) > 0) return WHITE;
     if ((bitboard & all_pieces_black) > 0) return BLACK;
-    return -1;  // empty square!
+    return (PlayerColor)-1;  // empty square!
 }
 
 int chess_get_index_from_bitboard(BitBoard bitboard) {
@@ -128,7 +162,7 @@ BitBoard chess_get_bitboard_from_index(int index) {
     return ((BitBoard) 1) << index;
 }
 
-static uint64_t rand_long() {
+static uint64_t rand_uint64_t() {
     return ((uint64_t) rand()) ^ (((uint64_t) rand()) << 16) ^ (((uint64_t) rand()) << 32) ^ (((uint64_t) rand()) << 48);
 }
 
@@ -159,8 +193,8 @@ static bool board_equals(Board *board1, Board *board2) {
 // if [board] is given, will augment move with flags; NULL is okay too
 static Move load_move(char *movestr, Board *board) {
     Move m;
-    m.from = 1ul << ((movestr[0] - 'a') + 8*(movestr[1] - '1'));
-    m.to = 1ul << ((movestr[2] - 'a') + 8*(movestr[3] - '1'));
+    m.from = 1ull << ((movestr[0] - 'a') + 8*(movestr[1] - '1'));
+    m.to = 1ull << ((movestr[2] - 'a') + 8*(movestr[3] - '1'));
     switch(movestr[4]) {
         case 'p': m.promotion = PAWN; break;
         case 'b': m.promotion = BISHOP; break;
@@ -318,9 +352,9 @@ static void clear_board(Board *board) {
     calc_zobrist(board);
 }
 
-static void set_board_from_fen(Board *board, char *fen) {
+static void set_board_from_fen(Board *board, const char *fen) {
     // if no fen given, use starting pos
-    char *use_fen = (fen != NULL) ? fen : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const char *use_fen = (fen != NULL) ? fen : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     clear_board(board);
     board->can_castle_bk = false;
     board->can_castle_bq = false;
@@ -342,10 +376,10 @@ static void set_board_from_fen(Board *board, char *fen) {
             case 'K': board->bb_white_king |= place_piece; break;
             case 'P': board->bb_white_pawn |= place_piece; break;
             case '/': break;
-            default:
+            default: {
                 char spaces = *use_fen - '0';
                 place_piece <<= (spaces - 1);
-                break;
+            } break;
         }
         if (*use_fen == '/') {
             use_fen++;
@@ -464,7 +498,7 @@ static void make_move(Board *board, Move move) {
         } else if (!en_passant) {
             board->en_passant_target = 0;
         }
-        if (move.to & 0xff000000000000fful) {
+        if (move.to & 0xff000000000000ffull) {
             do_promotion = true;
         }
     } else {
@@ -481,16 +515,16 @@ static void make_move(Board *board, Move move) {
         board->can_castle_bk = false;
         board->can_castle_bq = false;
     // note: flip_pieces used below because someone taking our rooks also clears castle rights
-    } else if (flip_pieces & 0x0000000000000001ul) {
+    } else if (flip_pieces & 0x0000000000000001ull) {
         if (board->can_castle_wq) hash ^= zobrist_keys[771];
         board->can_castle_wq = false;
-    } else if (flip_pieces & 0x0000000000000080ul) {
+    } else if (flip_pieces & 0x0000000000000080ull) {
         if (board->can_castle_wk) hash ^= zobrist_keys[770];
         board->can_castle_wk = false;
-    } else if (flip_pieces & 0x0100000000000000ul) {
+    } else if (flip_pieces & 0x0100000000000000ull) {
         if (board->can_castle_bq) hash ^= zobrist_keys[769];
         board->can_castle_bq = false;
-    } else if (flip_pieces & 0x8000000000000000ul) {
+    } else if (flip_pieces & 0x8000000000000000ull) {
         if (board->can_castle_bk) hash ^= zobrist_keys[768];
         board->can_castle_bk = false;
     }
@@ -500,8 +534,8 @@ static void make_move(Board *board, Move move) {
             hash ^= zobrist_keys[64*10+4]^zobrist_keys[64*10+6]^zobrist_keys[64*7+7]^zobrist_keys[64*7+5];
             if (board->can_castle_wk) hash ^= zobrist_keys[770];
             if (board->can_castle_wq) hash ^= zobrist_keys[771];
-            board->bb_white_king ^= 80ul;
-            board->bb_white_rook ^= 160ul;
+            board->bb_white_king ^= 80ull;
+            board->bb_white_rook ^= 160ull;
             board->can_castle_wk = false;
             board->can_castle_wq = false;
         } else if ((move.from & board->bb_white_king) > 0 && (move.to < move.from)) {
@@ -509,8 +543,8 @@ static void make_move(Board *board, Move move) {
             hash ^= zobrist_keys[64*10+4]^zobrist_keys[64*10+2]^zobrist_keys[64*7+0]^zobrist_keys[64*7+3];
             if (board->can_castle_wk) hash ^= zobrist_keys[770];
             if (board->can_castle_wq) hash ^= zobrist_keys[771];
-            board->bb_white_king ^= 20ul;
-            board->bb_white_rook ^= 9ul;
+            board->bb_white_king ^= 20ull;
+            board->bb_white_rook ^= 9ull;
             board->can_castle_wk = false;
             board->can_castle_wq = false;
         } else if ((move.from & board->bb_black_king) > 0 && (move.to > move.from)) {
@@ -518,8 +552,8 @@ static void make_move(Board *board, Move move) {
             hash ^= zobrist_keys[64*10+56+4]^zobrist_keys[64*10+56+6]^zobrist_keys[64*7+56+7]^zobrist_keys[64*7+56+5];
             if (board->can_castle_bk) hash ^= zobrist_keys[768];
             if (board->can_castle_bq) hash ^= zobrist_keys[769];
-            board->bb_black_king ^= 5764607523034234880ul;
-            board->bb_black_rook ^= 11529215046068469760ul;
+            board->bb_black_king ^= 5764607523034234880ull;
+            board->bb_black_rook ^= 11529215046068469760ull;
             board->can_castle_bk = false;
             board->can_castle_bq = false;
         } else if ((move.from & board->bb_black_king) > 0 && (move.to < move.from)) {
@@ -527,8 +561,8 @@ static void make_move(Board *board, Move move) {
             hash ^= zobrist_keys[64*10+56+4]^zobrist_keys[64*10+56+2]^zobrist_keys[64*7+56+0]^zobrist_keys[64*7+56+3];
             if (board->can_castle_bk) hash ^= zobrist_keys[768];
             if (board->can_castle_bq) hash ^= zobrist_keys[769];
-            board->bb_black_king ^= 1441151880758558720ul;
-            board->bb_black_rook ^= 648518346341351424ul;
+            board->bb_black_king ^= 1441151880758558720ull;
+            board->bb_black_rook ^= 648518346341351424ull;
             board->can_castle_bk = false;
             board->can_castle_bq = false;
         }
@@ -686,7 +720,7 @@ static void undo_move(Board *board) {
 }
 
 // Listens for and responds to UCI messages from the GUI. Updates API state as needed.
-static void *uci_process(void *arg) {
+static int uci_process(void *arg) {
     char line[4096];
     bool running = true;
     while (running) {
@@ -707,7 +741,8 @@ static void *uci_process(void *arg) {
                 printf("readyok\n");
                 fflush(stdout);
             } else if (!strcmp(token, "position")) {
-                pthread_mutex_lock(&API->mutex);
+                //pthread_mutex_lock(&API->mutex);
+                mtx_lock(&API->mutex);
                 memset(&API->latest_opponent_move, 0, sizeof(Move));
                 token = strtok(NULL, " ");
                 if (!strcmp(token, "fen")) {
@@ -716,7 +751,8 @@ static void *uci_process(void *arg) {
                     token = strtok(NULL, " ");
                     while (token && strcmp(token, "moves")) {
                         if (next_token > fenstring + 256) {
-                            pthread_exit(NULL);
+                            //pthread_exit(NULL);
+                            return 1;
                         }
                         strcpy(next_token, token);
                         next_token += strlen(token) + 1;
@@ -738,13 +774,22 @@ static void *uci_process(void *arg) {
                     while (move != NULL) {
                         m = load_move(move, API->shared_board);
                         make_move(API->shared_board, m);
+                        /*printf("board after update:\n");
+                        char bitboard_dump[80];
+                        printf("DEBUG: pawns follow\n");
+                        dump_bitboard(API->shared_board->bb_white_pawn, bitboard_dump);
+                        printf("white: \n%s\n", bitboard_dump);
+                        dump_bitboard(API->shared_board->bb_black_pawn, bitboard_dump);
+                        printf("black: \n%s\n", bitboard_dump);*/
                         move = strtok(NULL, " ");
                     }
                     API->latest_opponent_move = m;
                 }
-                pthread_mutex_unlock(&API->mutex);
+                //pthread_mutex_unlock(&API->mutex);
+                mtx_unlock(&API->mutex);
             } else if (!strcmp(token, "go")) {
-                pthread_mutex_lock(&API->mutex);
+                //pthread_mutex_lock(&API->mutex);
+                mtx_lock(&API->mutex);
                 token = strtok(NULL, " ");
                 while (token != NULL) {
                     if (!strcmp(token, "wtime")) {
@@ -754,29 +799,33 @@ static void *uci_process(void *arg) {
                         char *rawtime = strtok(NULL, " ");
                         API->btime = strtol(rawtime, NULL, 10);
                     } else if (!strcmp(token, "infinite")) {
-                        API->btime = (long)1<<31;
-                        API->wtime = (long)1<<31;
+                        API->btime = (uint64_t)1<<31;
+                        API->wtime = (uint64_t)1<<31;
                     }
                     token = strtok(NULL, " ");
                 }
-                sem_post(&API->intermission_mutex);
+                semaphore_post(&API->intermission_mutex);
                 API->turn_started_time = clock();
-                pthread_mutex_unlock(&API->mutex);
+                //pthread_mutex_unlock(&API->mutex);
+                mtx_unlock(&API->mutex);
             } else if (!strcmp(token, "stop")) {
                 // does nothing for now
             } else if (!strcmp(token, "quit")) {
-                pthread_cancel(API->uci_thread);
+                //pthread_cancel(API->uci_thread);
                 running = false;
+                exit(0);
             }
             token = strtok(NULL, " ");
         }
     }
-    pthread_exit(NULL);
+    //pthread_exit(NULL);
+    return 0;
 }
 
 // Start the UCI listener.
-static void uci_start(pthread_t *thread_id) {
-    pthread_create(thread_id, NULL, &uci_process, NULL);
+static void uci_start(thrd_t *thread_id) {
+    //pthread_create(thread_id, NULL, &uci_process, NULL);
+    thrd_create(thread_id, &uci_process, NULL);
 }
 
 // gets API->latest_pushed_move and formats in standard game notation, storing result in buffer
@@ -802,51 +851,65 @@ static void uci_finished_searching() {
 // any API methods that require thread safing are placed here
 
 static void interface_push(Move move) {
-    pthread_mutex_lock(&API->mutex);
+    // pthread_mutex_lock(&API->mutex);
+    mtx_lock(&API->mutex);
     API->latest_pushed_move = move;
     uci_info();
-    pthread_mutex_unlock(&API->mutex);
+    // pthread_mutex_unlock(&API->mutex);
+    mtx_unlock(&API->mutex);
 }
 
 static void interface_done() {
-    pthread_mutex_lock(&API->mutex);
+    //pthread_mutex_lock(&API->mutex);
+    mtx_lock(&API->mutex);
     uci_finished_searching();
-    pthread_mutex_unlock(&API->mutex);
-    sem_wait(&API->intermission_mutex);
+    //pthread_mutex_unlock(&API->mutex);
+    mtx_unlock(&API->mutex);
+    semaphore_wait(&API->intermission_mutex);
 }
 
 static Board *interface_get_board() {
-    pthread_mutex_lock(&API->mutex);
+    //pthread_mutex_lock(&API->mutex);
+    mtx_lock(&API->mutex);
     Board *board = clone_board(API->shared_board);
-    pthread_mutex_unlock(&API->mutex);
+    //pthread_mutex_unlock(&API->mutex);
+    mtx_unlock(&API->mutex);
     return board;
 }
 
-static long interface_get_time_millis() {
-    pthread_mutex_lock(&API->mutex);
-    long millis = API->shared_board->whiteToMove ? API->wtime : API->btime;
-    pthread_mutex_unlock(&API->mutex);
+static uint64_t interface_get_time_millis() {
+    //pthread_mutex_lock(&API->mutex);
+    mtx_lock(&API->mutex);
+    uint64_t millis = API->shared_board->whiteToMove ? API->wtime : API->btime;
+    //pthread_mutex_unlock(&API->mutex);
+    mtx_unlock(&API->mutex);
     return millis;
 }
 
-static long interface_get_opponent_time_millis() {
-    pthread_mutex_lock(&API->mutex);
-    long millis = API->shared_board->whiteToMove ? API->btime : API->wtime;
-    pthread_mutex_unlock(&API->mutex);
+static uint64_t interface_get_opponent_time_millis() {
+    //pthread_mutex_lock(&API->mutex);
+    mtx_lock(&API->mutex);
+    uint64_t millis = API->shared_board->whiteToMove ? API->btime : API->wtime;
+    //pthread_mutex_unlock(&API->mutex);
+    mtx_unlock(&API->mutex);
     return millis;
 }
 
-static long interface_get_elapsed_time_millis() {
-    pthread_mutex_lock(&API->mutex);
-    long millis = (clock() - API->turn_started_time) / (CLOCKS_PER_SEC / 1000);
-    pthread_mutex_unlock(&API->mutex);
+static uint64_t interface_get_elapsed_time_millis() {
+    //pthread_mutex_lock(&API->mutex);
+    mtx_lock(&API->mutex);
+    uint64_t millis = (clock() - API->turn_started_time) / (CLOCKS_PER_SEC / 1000);
+    //pthread_mutex_unlock(&API->mutex);
+    mtx_unlock(&API->mutex);
     return millis;
 }
 
 static Move interface_get_opponent_move() {
-    pthread_mutex_lock(&API->mutex);
+    //pthread_mutex_lock(&API->mutex);
+    mtx_lock(&API->mutex);
     Move move = API->latest_opponent_move;
-    pthread_mutex_unlock(&API->mutex);
+    //pthread_mutex_unlock(&API->mutex);
+    mtx_unlock(&API->mutex);
     return move;
 }
 
@@ -964,8 +1027,8 @@ static BitBoard get_pins_nwse(Board *board, bool white) {
 // If [exclude_pawn_moves], pawn forward advances are not included (effectively making this only return attacks).
 // Caller must free move array.
 static BitBoard *get_pseudo_legal_moves(Board *board, bool white, bool all_attacked, BitBoard exclude, bool exclude_pawn_moves) {
-    BitBoard *dirmoves = malloc(16*sizeof(BitBoard));
-    if ((!all_attacked) && (exclude == 0)) {
+    BitBoard *dirmoves = (BitBoard*)malloc(16*sizeof(BitBoard));
+    if ((!all_attacked) && (exclude == 0) && (!exclude_pawn_moves)) {
         if (white && board->bb_white_moves) {
             memcpy(dirmoves, board->bb_white_moves, 16*sizeof(BitBoard));
             return dirmoves;
@@ -974,7 +1037,7 @@ static BitBoard *get_pseudo_legal_moves(Board *board, bool white, bool all_attac
             return dirmoves;
         }
     }
-    memset(dirmoves, 0, 16);
+    memset(dirmoves, 0, 16*sizeof(BitBoard));
     BitBoard all_pieces_white = board->bb_white_bishop | board->bb_white_king
         | board->bb_white_knight | board->bb_white_pawn | board->bb_white_queen
         | board->bb_white_rook;
@@ -983,11 +1046,11 @@ static BitBoard *get_pseudo_legal_moves(Board *board, bool white, bool all_attac
         | board->bb_black_rook;
     BitBoard all_pieces = all_pieces_black | all_pieces_white;
     BitBoard empty = exclude | ~all_pieces;
-    BitBoard all_attacked_mask = all_attacked ? ~0ul : 0ul;
-    BitBoard exclude_pawn_move_mask = exclude_pawn_moves ? 0ul : ~0ul;
+    BitBoard all_attacked_mask = all_attacked ? ~0ull : 0ull;
+    BitBoard exclude_pawn_move_mask = exclude_pawn_moves ? 0ull : ~0ull;
     if (white) {
         BitBoard pawn_moves = bb_slide_n(board->bb_white_pawn) & empty & exclude_pawn_move_mask;
-        BitBoard pawn_big_moves = bb_slide_n(pawn_moves & 0x0000000000ff0000ul) & empty;
+        BitBoard pawn_big_moves = bb_slide_n(pawn_moves & 0x0000000000ff0000ull) & empty;
         BitBoard pawn_attacks_ne = bb_slide_ne(board->bb_white_pawn) & (all_pieces_black | board->en_passant_target | all_attacked_mask);
         BitBoard pawn_attacks_nw = bb_slide_nw(board->bb_white_pawn) & (all_pieces_black | board->en_passant_target | all_attacked_mask);
         BitBoard ray_moves_n = bb_flood_n(board->bb_white_queen | board->bb_white_rook, empty, true);
@@ -1024,7 +1087,7 @@ static BitBoard *get_pseudo_legal_moves(Board *board, bool white, bool all_attac
         dirmoves[DIR_NW] = (pawn_attacks_nw | ray_moves_nw | king_moves_nw) & (all_attacked_mask | ~all_pieces_white);
     } else {
         BitBoard pawn_moves = bb_slide_s(board->bb_black_pawn) & empty & exclude_pawn_move_mask;
-        BitBoard pawn_big_moves = bb_slide_s(pawn_moves & 0x0000ff0000000000ul) & empty;
+        BitBoard pawn_big_moves = bb_slide_s(pawn_moves & 0x0000ff0000000000ull) & empty;
         BitBoard pawn_attacks_se = bb_slide_se(board->bb_black_pawn) & (all_pieces_white | board->en_passant_target | all_attacked_mask);
         BitBoard pawn_attacks_sw = bb_slide_sw(board->bb_black_pawn) & (all_pieces_white | board->en_passant_target | all_attacked_mask);
         BitBoard ray_moves_n = bb_flood_n(board->bb_black_queen | board->bb_black_rook, empty, true);
@@ -1060,12 +1123,12 @@ static BitBoard *get_pseudo_legal_moves(Board *board, bool white, bool all_attac
         dirmoves[DIR_W] = (ray_moves_w | king_moves_w) & (all_attacked_mask | ~all_pieces_black);
         dirmoves[DIR_NW] = (ray_moves_nw | king_moves_nw) & (all_attacked_mask | ~all_pieces_black);
     }
-    if ((!all_attacked) && (exclude == 0)) {
+    if ((!all_attacked) && (exclude == 0) && (!exclude_pawn_moves)) {
         if (white) {
-            board->bb_white_moves = malloc(16 * sizeof(BitBoard));
+            board->bb_white_moves =(BitBoard*)malloc(16 * sizeof(BitBoard));
             memcpy(board->bb_white_moves, dirmoves, 16 * sizeof(BitBoard));
         } else {
-            board->bb_black_moves = malloc(16 * sizeof(BitBoard));
+            board->bb_black_moves = (BitBoard*)malloc(16 * sizeof(BitBoard));
             memcpy(board->bb_black_moves, dirmoves, 16 * sizeof(BitBoard));
         }
     }
@@ -1162,9 +1225,10 @@ static BitBoard single_check_block_tiles(Board *board, bool defenderWhite) {
 static Move *add_to_moves(Move *moves, size_t *len_moves, size_t *maxlen_moves, Move move) {
     moves[*len_moves] = move;
     (*len_moves)++;
+    //printf("new length of moves is %llu\n", *len_moves);
     if (*len_moves == *maxlen_moves) {
         (*maxlen_moves) *= 2;
-        return realloc(moves, *maxlen_moves * sizeof(Move));
+        return (Move*)realloc(moves, *maxlen_moves * sizeof(Move));
     }
     return moves;
 }
@@ -1241,7 +1305,7 @@ static Move *get_legal_moves(Board *board, int *len) {
         }
         if (pseudo_moves[DIR_N] & piecepos) {
             add_move.from = bb_blocker_s(piecepos, ~my_pieces);
-            char movestr[8];
+            //char movestr[8];
             //dump_move(movestr, add_move);
             //printf("testing move: %s\n", movestr);
             bool moving_king = (add_move.from & my_king) > 0;
@@ -1634,7 +1698,7 @@ static Move *get_legal_moves(Board *board, int *len) {
         moves = add_to_moves(moves, &len_moves, &maxlen_moves, add_move);
     }
     // shrink array to fit
-    moves = realloc(moves, len_moves * sizeof(Move));
+    moves = (Move*)realloc(moves, len_moves * sizeof(Move));
     *len = len_moves;
     free(pseudo_moves);
     free(opp_pseudo_moves);
@@ -1648,17 +1712,19 @@ static void start_chess_api() {
     API->wtime = 0;
     API->btime = 0;
     memset(&API->latest_opponent_move, 0, sizeof(Move));
-    pthread_mutex_init(&API->mutex, NULL);
-    sem_init(&API->intermission_mutex, 0, 0);
+    //pthread_mutex_init(&API->mutex, NULL);
+    //sem_init(&API->intermission_mutex, 0, 0);
+    mtx_init(&API->mutex, mtx_plain);
+    semaphore_init(&API->intermission_mutex, 0);
     // setup zobrist keys
     srand(time(NULL));
     for (int i = 0; i < 781; i++) {
-        zobrist_keys[i] = rand_long();
+        zobrist_keys[i] = rand_uint64_t();
     }
     // start the uci server in its own thread
     uci_start(&API->uci_thread);
     // block until uci endpoint says go
-    sem_wait(&API->intermission_mutex);
+    semaphore_wait(&API->intermission_mutex);
 }
 
 // Returns true if a threefold repetition has occurred on [board]
@@ -1667,8 +1733,8 @@ static bool is_threefold_draw(Board *board) {
     // i hate everything
     int cur_size = 0;
     int max_size = 1;
-    Board **boards = malloc(sizeof(Board *));
-    int *counts = malloc(sizeof(int));
+    Board **boards = (Board**)malloc(sizeof(Board *));
+    int *counts = (int*)malloc(sizeof(int));
     Board *cur_board = board;
     bool hit, found = false;
     while (cur_board) {
@@ -1687,8 +1753,8 @@ static bool is_threefold_draw(Board *board) {
         if (!hit) {
             if (cur_size == max_size) {
                 max_size *= 2;
-                boards = realloc(boards, max_size*sizeof(Board *));
-                counts = realloc(counts, max_size*sizeof(int));
+                boards = (Board**)realloc(boards, max_size*sizeof(Board *));
+                counts = (int*)realloc(counts, max_size*sizeof(int));
             }
             boards[cur_size] = cur_board;
             counts[cur_size] = 0;
@@ -1703,7 +1769,7 @@ static bool is_threefold_draw(Board *board) {
 }
 
 // Returns GAME_NORMAL, GAME_STALEMATE or GAME_CHECKMATE based on the state on [board]
-static int get_board_end_state(Board *board) {
+static GameState get_board_end_state(Board *board) {
     if (board->halfmoves >= 50) return GAME_STALEMATE;
     if (is_threefold_draw(board)) return GAME_STALEMATE;
     int num_legal_moves;
@@ -1764,17 +1830,17 @@ void chess_free_board(Board *board) {
     free_board(board);
 }
 
-long chess_get_time_millis() {
+uint64_t chess_get_time_millis() {
     if (API == NULL) start_chess_api();
     return interface_get_time_millis();
 }
 
-long chess_get_opponent_time_millis() {
+uint64_t chess_get_opponent_time_millis() {
     if (API == NULL) start_chess_api();
     return interface_get_opponent_time_millis();
 }
 
-long chess_get_elapsed_time_millis() {
+uint64_t chess_get_elapsed_time_millis() {
     if (API == NULL) start_chess_api();
     return interface_get_elapsed_time_millis();
 }

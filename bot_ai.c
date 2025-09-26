@@ -1,172 +1,174 @@
-#include <stdio.h>
+#include "chessapi.h"
+#include <limits.h>
+#include <stdint.h>
 #include <string.h>
-#include <ctype.h>
 
-typedef struct { int a,b,c,d,cap,prom; } M;
-char B[8][8], S='w';
-int drN[]={-2,-1,1,2,2,1,-1,-2}, dfN[]={1,2,2,1,-1,-2,-2,-1}, drB[]={-1,-1,1,1}, dfB[]={-1,1,1,-1}, drR[]={-1,1,0,0}, dfR[]={0,0,-1,1}, drQ[]={-1,-1,-1,0,1,1,1,0}, dfQ[]={-1,0,1,1,1,0,-1,-1}, uk = 100000;
+#define MAX_HISTORY 256
 
-int P(char p, char side, int opp) {
-    return p != '.' && (isupper(p) ^ (side=='b') ^ opp);
-}
-
-void reset(void) {
-    const char *setup = "rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";
-    for(int i=0;i<64;i++) B[i/8][i%8] = setup[i];
-    S='w';
-}
-
-void mdo(M m,int u) {
-    char pc = B[u?m.c:m.a][u?m.d:m.b];
-    B[u?m.a:m.c][u?m.b:m.d] = m.prom ? (isupper(pc)?'P':'p') : pc;
-    B[u?m.c:m.a][u?m.d:m.b] = u ? m.cap : '.';
-    S ^= 'w' ^ 'b';
-}
-
-int pv(char c) {
-    switch(c) {
-        case 'P': return 10;
-        case 'N':
-        case 'B': return 30;
-        case 'R': return 50;
-        case 'Q': return 90;
-        default: return 900;
+// --- Piece values ---
+int piece_value(PieceType piece) {
+    switch(piece) {
+        case PAWN: return 100;
+        case KNIGHT: return 320;
+        case BISHOP: return 330;
+        case ROOK: return 500;
+        case QUEEN: return 900;
+        default: return 10000; //king
     }
 }
 
-int eval(void) {
-    int s=0;
-    for(int i=0;i<64;i++){
-        char c = B[i/8][i%8];
-        if(c != '.') s += (isupper(c)?1:-1) * pv(toupper(c));
+// --- Board evaluation (material only, optional: repetition penalty) ---
+int evaluate_board(Board *board, uint64_t history[], int history_len) {
+    int score = 0;
+    for (int i = PAWN; i <= KING; i++) {
+        BitBoard w_bb = chess_get_bitboard(board, WHITE, i);
+        BitBoard b_bb = chess_get_bitboard(board, BLACK, i);
+        score += piece_value(i) * (__builtin_popcountll(w_bb) - __builtin_popcountll(b_bb));
     }
-    return s;
+
+    // Penalize repeated positions strongly
+    uint64_t hash = chess_zobrist_key(board);
+    int repeat_count = 0;
+    for (int i = 0; i < history_len; i++)
+        if (history[i] == hash)
+            repeat_count++;
+
+    score -= repeat_count * 500; // strong penalty to avoid cycles
+
+    return score;
 }
 
-int gen_moves(char s, M*m) {
-    int n=0;
-    for(int r=0;r<8;r++){
-        for(int f=0;f<8;f++){
-            char p=B[r][f];
-            if(!P(p,s,0)) continue;
-            switch(toupper(p)){
-                case 'P': {
-                    int d = s=='w' ? -1 : 1;
-                    if((r+d)>=0 && (r+d)<8 && B[r+d][f]=='.') m[n++] = (M){r,f,r+d,f,'.',0};
-                    if((r==(s=='w'?6:1)) && B[r+d][f]=='.' && B[r+2*d][f]=='.') m[n++] = (M){r,f,r+2*d,f,'.',0};
-                    for(int df=-1;df<=1;df+=2){
-                        int nr=r+d,nf=f+df;
-                        if(nr>=0 && nr<8 && nf>=0 && nf<8 && P(B[nr][nf],s,1)) m[n++] = (M){r,f,nr,nf,B[nr][nf],0};
-                    }
-                } break;
-                case 'N':
-                    for(int i=0;i<8;i++){
-                        int nr=r+drN[i], nf=f+dfN[i];
-                        if(nr>=0 && nr<8 && nf>=0 && nf<8 && !P(B[nr][nf],s,0))
-                            m[n++] = (M){r,f,nr,nf,B[nr][nf],0};
-                    } break;
-                case 'B': case 'R': case 'Q': {
-                    int *dr, *df, len;
-                    if(toupper(p)=='B'){ dr=drB; df=dfB; len=4; }
-                    else if(toupper(p)=='R'){ dr=drR; df=dfR; len=4; }
-                    else { dr=drQ; df=dfQ; len=8; }
-                    for(int i=0;i<len;i++){
-                        for(int nr=r+dr[i], nf=f+df[i]; nr>=0 && nr<8 && nf>=0 && nf<8; nr+=dr[i], nf+=df[i]){
-                            if(P(B[nr][nf],s,0)) break;
-                            m[n++] = (M){r,f,nr,nf,B[nr][nf],0};
-                            if(P(B[nr][nf],s,1)) break;
-                        }
-                    }
-                } break;
-                default:
-                    for(int i=0;i<8;i++){
-                        int nr=r+drQ[i], nf=f+dfQ[i];
-                        if(nr>=0 && nr<8 && nf>=0 && nf<8 && !P(B[nr][nf],s,0))
-                            m[n++] = (M){r,f,nr,nf,B[nr][nf],0};
-                    } break;
-            }
+// --- Check if move would cause a threefold repetition ---
+bool would_repeat(Board *board, Move m, uint64_t history[], int history_len) {
+    chess_make_move(board, m);
+    uint64_t hash = chess_zobrist_key(board);
+    chess_undo_move(board);
+
+    int count = 0;
+    for (int i = 0; i < history_len; i++)
+        if (history[i] == hash)
+            count++;
+
+    return count >= 2; // skip move if it would cause 3rd occurrence
+}
+
+// --- Minimax with repetition avoidance ---
+int minimax(Board *board, int depth, bool maximizing, uint64_t history[], int history_len) {
+    GameState state = chess_get_game_state(board);
+    if (depth == 0 || state != GAME_NORMAL)
+        return evaluate_board(board, history, history_len);
+
+    int len;
+    Move *moves = chess_get_legal_moves(board, &len);
+    if (len == 0) {
+        chess_free_moves_array(moves);
+        return evaluate_board(board, history, history_len);
+    }
+
+    int best_score = maximizing ? INT_MIN : INT_MAX;
+
+    for (int i = 0; i < len; i++) {
+        if (would_repeat(board, moves[i], history, history_len))
+            continue;
+
+        int capture_bonus = 0;
+        if (moves[i].capture) {
+            PieceType captured = chess_get_piece_from_bitboard(board, moves[i].to);
+            capture_bonus = piece_value(captured);
+        }
+
+        // Make move and add board hash to history
+        chess_make_move(board, moves[i]);
+        if (history_len < MAX_HISTORY) {
+            history[history_len++] = chess_zobrist_key(board);
+        } else {
+            memmove(&history[0], &history[1], sizeof(uint64_t) * (MAX_HISTORY - 1));
+            history[MAX_HISTORY - 1] = chess_zobrist_key(board);
+        }
+
+        int score = minimax(board, depth - 1, !maximizing, history, history_len);
+        chess_undo_move(board);
+        history_len--; // remove hash after undo
+
+        score += maximizing ? capture_bonus : -capture_bonus;
+
+        if ((maximizing && score > best_score) || (!maximizing && score < best_score)) {
+            best_score = score;
         }
     }
-    return n;
+
+    chess_free_moves_array(moves);
+    return best_score;
 }
 
-int gen_legal(char s,M*o) {
-    M m[256], v[256];
-    int c=0;
-    int i,j,k;
-    for(i=0;i<gen_moves(s,m);i++){
-        mdo(m[i],0);
-        for(j=0;j<64;j++) if(B[j/8][j%8] == (s=='w'?'K':'k')) break;
-        for(k=gen_moves(s^'w'^'b',v);k--;) if(v[k].c==j/8 && v[k].d==j%8) goto x;
-        o[c++] = m[i];
-        x:;
-        mdo(m[i],1);
-    }
-    return c;
-}
+// --- Find best move avoiding repetition ---
+Move find_best_move(Board *board, int depth, uint64_t history[], int history_len) {
+    int len;
+    Move *moves = chess_get_legal_moves(board, &len);
+    Move best_move = moves[0];
+    bool maximizing = chess_is_white_turn(board);
+    int best_score = maximizing ? INT_MIN : INT_MAX;
 
-int minimax(int d,int a,int b,int m) {
-    if(!d) return eval();
-    M x[256];
-    int n = gen_legal(S,x);
-    if(!n) return eval();
-    int v = m==S ? -uk : uk;
-    for(int i=n;i--;){
-        mdo(x[i],0);
-        int e = minimax(d-1,a,b,m);
-        mdo(x[i],1);
-        if(m==S? e>v : e<v) v=e;
-        if(m==S && v>a) a=v;
-        if(m!=S && v<b) b=v;
-        if(b<=a) break;
-    }
-    return v;
-}
+    for (int i = 0; i < len; i++) {
+        if (would_repeat(board, moves[i], history, history_len))
+            continue;
 
-void best(void){
-    M mv[256];
-    int i,b=0,n=gen_legal(S,mv),e=S=='w'?-uk:uk;
-    for(i=0;i<n;i++){
-        mdo(mv[i],0);
-        int v = minimax(3,-uk,uk,S);
-        mdo(mv[i],1);
-        if((v>e) ^ (S=='b')) { e=v; b=i; }
-    }
-    if(n){
-        M *p = &mv[b];
-        printf("bestmove %c%d%c%d\n",'a'+p->b,8-p->a,'a'+p->d,8-p->c);
-        fflush(stdout);
-    }
-}
-
-int main(void){
-    char l[512];
-    while(fgets(l,sizeof(l),stdin)){
-        l[strcspn(l,"\r\n")] = 0;
-
-        !strcmp(l,"uci")     ? (printf("id name bot\nid author s\nuciok\n"), fflush(stdout)) : 0;
-        !strcmp(l,"isready") ? (printf("readyok\n"), fflush(stdout)) : 0;
-        !strcmp(l,"ucinewgame") ? reset() : 0;
-
-        if(!strncmp(l,"position",8)){
-            strstr(l,"startpos") ? reset() : 0;
-            char *ms=strstr(l,"moves");
-            if(ms){
-                ms+=6;
-                char *t=strtok(ms," ");
-                while(t){
-                    int a=t[0]-'a', b='8'-t[1], c=t[2]-'a', d='8'-t[3];
-                    char e=B[b][a];
-                    B[d][c]=e;
-                    B[b][a]='.';
-                    if(strlen(t)==5) B[d][c]=isupper(e)?toupper(t[4]):tolower(t[4]);
-                    S^='w'^'b';
-                    t=strtok(NULL," ");
-                }
-            }
+        int capture_bonus = 0;
+        if (moves[i].capture) {
+            PieceType captured = chess_get_piece_from_bitboard(board, moves[i].to);
+            capture_bonus = piece_value(captured);
         }
-        !strncmp(l,"go",2) ? best() : 0;
-        if(!strcmp(l,"quit")) break;
+
+        // Make move and add hash
+        chess_make_move(board, moves[i]);
+        if (history_len < MAX_HISTORY) {
+            history[history_len++] = chess_zobrist_key(board);
+        } else {
+            memmove(&history[0], &history[1], sizeof(uint64_t) * (MAX_HISTORY - 1));
+            history[MAX_HISTORY - 1] = chess_zobrist_key(board);
+        }
+
+        int score = minimax(board, depth - 1, !maximizing, history, history_len);
+        chess_undo_move(board);
+        history_len--; // remove hash after undo
+
+        score += maximizing ? capture_bonus : -capture_bonus;
+
+        if ((maximizing && score > best_score) || (!maximizing && score < best_score)) {
+            best_score = score;
+            best_move = moves[i];
+        }
     }
+
+    chess_free_moves_array(moves);
+    return best_move;
+}
+
+int main(void) {
+    uint64_t board_history[MAX_HISTORY];
+    int history_len = 0;
+
+    for (int i = 0; i < 500; i++) {
+        Board *board = chess_get_board();
+        if (chess_get_game_state(board) != GAME_NORMAL) {
+            chess_free_board(board);
+            break;
+        }
+
+        Move best = find_best_move(board, 2, board_history, history_len);
+
+        // Push move and add hash to history
+        chess_push(best);
+        if (history_len < MAX_HISTORY) {
+            board_history[history_len++] = chess_zobrist_key(board);
+        } else {
+            memmove(&board_history[0], &board_history[1], sizeof(uint64_t) * (MAX_HISTORY - 1));
+            board_history[MAX_HISTORY - 1] = chess_zobrist_key(board);
+        }
+
+        chess_done();
+        chess_free_board(board);
+    }
+
     return 0;
 }

@@ -4,15 +4,17 @@ project(ChessBot C)
 # Set C standard and optimization
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")  # Match -O3 optimization
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 
-# Include current source directory
+# Include current source directory + tinycthread directory
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/third_party/tinycthread)
 
-# Build the library
+# Build the library (add tinycthread.c)
 add_library(chess STATIC
         chessapi.c
         bitboard.c
+        third_party/tinycthread/tinycthread.c   # <-- add tinycthread source here
 )
 
 # Build the token counter
@@ -37,5 +39,11 @@ set_target_properties(bot_exec_template PROPERTIES LINK_FLAGS "-mconsole")
 add_custom_command(TARGET bot_exec_ai
         POST_BUILD
         COMMAND c_token_count ${CMAKE_SOURCE_DIR}/bot_ai.c
+        COMMENT "Counting tokens in bot_ai.c..."
+)
+
+add_custom_command(TARGET bot_exec_template
+        POST_BUILD
+        COMMAND c_token_count ${CMAKE_SOURCE_DIR}/base_bot.c
         COMMENT "Counting tokens in bot_ai.c..."
 )

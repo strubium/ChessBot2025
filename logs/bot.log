@@ -14,20 +14,58 @@ pppppppp
 PPPPPPPP
 RNBQKBNR
 Bot is playing as Black
-Received command: position startpos moves b1c3
 Received command: isready
-Received commandReceived command: position startpos moves b1c3 bReceived command: position startpos moves b1c3 b8c6 a1b1
+Received command: go wtime 10000 btime 10000
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5
 Received command: isready
-Received coReceived command: position startpos moves b1c3 b8c6 aReceived command: position startpos moves b1c3 b8c6 a1b1 a8b8 c3e4
+Received command: go wtime 10000 btime 9804
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4
 Received command: isready
-ReceivReceived command: position startpos moves b1c3 b8c6 a1b1 aReceived command: position startpos moves b1c3 b8c6 a1b1 a8b8 c3e4 g8h6 e4g3
+Received command: go wtime 10000 btime 9643
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5
 Received command: isready
-RReceived command: position startpos moves b1c3 b8c6 a1b1 a8b8 cReceived command: position startpos moves b1c3 b8c6 a1b1 a8b8 c3e4 g8h6 e4g3 h8g8 g3h5
-Received command: isreaReceived command: position startpos moves b1c3 b8c6 a1b1 a8b8 c3e4 gReceived command: position startpos moves b1c3 b8c6 a1b1 a8b8 c3e4 g8h6 e4g3 h8g8 g3h5 c6d4 h5f6
-Received command: Received command: isready
-Received command: quit
-Quitting
-ove: Black
+Received command: go wtime 10000 btime 9175
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4
 Received command: isready
-Received command: quit
-Quitting
+Received command: go wtime 10000 btime 9013
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5
+Received command: isready
+Received command: go wtime 9998 btime 8830
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5 h5f6 g8f6
+Received command: isready
+Received command: go wtime 9997 btime 8669
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5 h5f6 g8f6 b1a1 e7e5
+Received command: isready
+Received command: go wtime 9996 btime 8400
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5 h5f6 g8f6 b1a1 e7e5 g1h3 c8h3
+Received command: isready
+Received command: go wtime 9996 btime 8242
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5 h5f6 g8f6 b1a1 e7e5 g1h3 c8h3 h1g1 h3e6
+Received command: isready
+Received command: go wtime 9996 btime 7996
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5 h5f6 g8f6 b1a1 e7e5 g1h3 c8h3 h1g1 h3e6 a2a3 b8c6
+Received command: isready
+Received command: go wtime 9996 btime 7233
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5 h5f6 g8f6 b1a1 e7e5 g1h3 c8h3 h1g1 h3e6 a2a3 b8c6 a1a2 d5a2
+Received command: isready
+Received command: go wtime 9996 btime 7040
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5 h5f6 g8f6 b1a1 e7e5 g1h3 c8h3 h1g1 h3e6 a2a3 b8c6 a1a2 d5a2 a3a4 e8c8
+Received command: isready
+Received command: go wtime 9994 btime 6906
+Bot to move: White
+Received command: position startpos moves b1c3 d7d5 a1b1 d5d4 c3e4 f7f5 e4g3 f5f4 g3h5 d8d5 h5f6 g8f6 b1a1 e7e5 g1h3 c8h3 h1g1 h3e6 a2a3 b8c6 a1a2 d5a2 a3a4 e8c8 a4a5 a2a5
+Received command: isready
+Received command: go wtime 9994 btime 6864
+Bot to move: White

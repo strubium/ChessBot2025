@@ -19,13 +19,45 @@ int piece_value(PieceType piece) {
 // --- Board evaluation (material only, with repetition penalty) ---
 int evaluate_board(Board *board, uint64_t history[], int history_len) {
     int score = 0;
+
+    // Material
     for (int i = PAWN; i <= KING; i++) {
         BitBoard w_bb = chess_get_bitboard(board, WHITE, i);
         BitBoard b_bb = chess_get_bitboard(board, BLACK, i);
         score += piece_value(i) * (__builtin_popcountll(w_bb) - __builtin_popcountll(b_bb));
     }
 
-    // Penalize repeated positions strongly
+    // Development bonus: knights and bishops off starting squares
+    BitBoard w_knight = chess_get_bitboard(board, WHITE, KNIGHT);
+    BitBoard w_bishop = chess_get_bitboard(board, WHITE, BISHOP);
+    BitBoard b_knight = chess_get_bitboard(board, BLACK, KNIGHT);
+    BitBoard b_bishop = chess_get_bitboard(board, BLACK, BISHOP);
+
+    // For White, starting squares: b1,g1 knights, c1,f1 bishops
+    BitBoard w_dev = w_knight & ~(1ULL << 1) & ~(1ULL << 6);
+    w_dev |= w_bishop & ~(1ULL << 2) & ~(1ULL << 5);
+
+    // For Black, starting squares: b8,g8 knights (index 57,62), c8,f8 bishops (58,61)
+    BitBoard b_dev = b_knight & ~(1ULL << 57) & ~(1ULL << 62);
+    b_dev |= b_bishop & ~(1ULL << 58) & ~(1ULL << 61);
+
+    score += 10 * (__builtin_popcountll(w_dev) - __builtin_popcountll(b_dev));
+
+    // Center control bonus (d4,e4,d5,e5 squares)
+    BitBoard center = 1ULL << 27 | 1ULL << 28 | 1ULL << 35 | 1ULL << 36;
+    BitBoard w_center = (chess_get_bitboard(board, WHITE, PAWN) | chess_get_bitboard(board, WHITE, KNIGHT) |
+                         chess_get_bitboard(board, WHITE, BISHOP) | chess_get_bitboard(board, WHITE, QUEEN)) & center;
+    BitBoard b_center = (chess_get_bitboard(board, BLACK, PAWN) | chess_get_bitboard(board, BLACK, KNIGHT) |
+                         chess_get_bitboard(board, BLACK, BISHOP) | chess_get_bitboard(board, BLACK, QUEEN)) & center;
+    score += 20 * (__builtin_popcountll(w_center) - __builtin_popcountll(b_center));
+
+    // King safety / castling bonus
+    if (chess_can_kingside_castle(board, WHITE) || chess_can_queenside_castle(board, WHITE))
+        score += 30;
+    if (chess_can_kingside_castle(board, BLACK) || chess_can_queenside_castle(board, BLACK))
+        score -= 30;
+
+    // Penalize repeated positions
     uint64_t hash = chess_zobrist_key(board);
     int repeat_count = 0;
     for (int i = 0; i < history_len; i++)

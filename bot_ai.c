@@ -2,20 +2,21 @@
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 // --- Piece values ---
 int piece_value(PieceType piece) {
     switch(piece) {
-        case PAWN: return 100;
+        case PAWN:   return 100;
         case KNIGHT: return 320;
         case BISHOP: return 330;
-        case ROOK: return 500;
-        case QUEEN: return 900;
-        default: return 10000; // king
+        case ROOK:   return 500;
+        case QUEEN:  return 900;
+        default:     return 10000; // King
     }
 }
 
-// --- Board evaluation (material only, optional: repetition penalty) ---
+// --- Board evaluation (material only, with repetition penalty) ---
 int evaluate_board(Board *board, uint64_t history[], int history_len) {
     int score = 0;
     for (int i = PAWN; i <= KING; i++) {
@@ -30,67 +31,88 @@ int evaluate_board(Board *board, uint64_t history[], int history_len) {
     for (int i = 0; i < history_len; i++)
         if (history[i] == hash)
             repeat_count++;
+    score -= repeat_count * 500;
 
-    score -= repeat_count * 500; // strong penalty to avoid cycles
     return score;
 }
 
 // --- Check if move would cause a threefold repetition ---
 bool would_repeat(Board *board, Move m, uint64_t history[], int history_len) {
+    // Include the current board as the first occurrence
+    uint64_t current_hash = chess_zobrist_key(board);
+
     chess_make_move(board, m);
-    uint64_t hash = chess_zobrist_key(board);
+    uint64_t new_hash = chess_zobrist_key(board);
     chess_undo_move(board);
 
     int count = 0;
+    // count occurrences in history
     for (int i = 0; i < history_len; i++)
-        if (history[i] == hash)
+        if (history[i] == new_hash)
             count++;
 
-    return count >= 2; // skip move if it would cause 3rd occurrence
+    // include current board hash as part of the path
+    if (new_hash == current_hash)
+        count++;
+
+    return count >= 3;
 }
 
-// --- Minimax with repetition avoidance ---
-int minimax(Board *board, int depth, bool maximizing, uint64_t history[], int history_len) {
+
+// --- Minimax with alpha-beta pruning and proper history handling ---
+int minimax(Board *board, int depth, bool maximizing, int alpha, int beta,
+            uint64_t path[], int path_len) {
+
     GameState state = chess_get_game_state(board);
     if (depth == 0 || state != GAME_NORMAL)
-        return evaluate_board(board, history, history_len);
+        return evaluate_board(board, path, path_len);
 
     int len;
     Move *moves = chess_get_legal_moves(board, &len);
     if (len == 0) {
         chess_free_moves_array(moves);
-        return evaluate_board(board, history, history_len);
+        return evaluate_board(board, path, path_len);
     }
 
     int best_score = maximizing ? INT_MIN : INT_MAX;
 
     for (int i = 0; i < len; i++) {
-        if (would_repeat(board, moves[i], history, history_len))
-            continue;
+        // Temporarily make move
+        chess_make_move(board, moves[i]);
+        uint64_t hash = chess_zobrist_key(board);
 
-        int capture_bonus = 0;
-        if (moves[i].capture) {
-            PieceType captured = chess_get_piece_from_bitboard(board, moves[i].to);
-            capture_bonus = piece_value(captured);
+        // Check repetition along **this search path**
+        int count = 0;
+        for (int j = 0; j < path_len; j++)
+            if (path[j] == hash)
+                count++;
+        if (count >= 2) { // 3rd occurrence = illegal
+            chess_undo_move(board);
+            continue;
         }
 
-        // Make move and add board hash to history
-        chess_make_move(board, moves[i]);
-        history[history_len++] = chess_zobrist_key(board);
+        // Append hash to path for recursion
+        path[path_len] = hash;
+        int score = minimax(board, depth - 1, !maximizing, alpha, beta, path, path_len + 1);
 
-        int score = minimax(board, depth - 1, !maximizing, history, history_len);
         chess_undo_move(board);
-        history_len--; // remove hash after undo
 
-        score += maximizing ? capture_bonus : -capture_bonus;
+        if (maximizing) {
+            if (score > best_score) best_score = score;
+            if (score > alpha) alpha = score;
+        } else {
+            if (score < best_score) best_score = score;
+            if (score < beta) beta = score;
+        }
 
-        if ((maximizing && score > best_score) || (!maximizing && score < best_score))
-            best_score = score;
+        if (beta <= alpha)
+            break;
     }
 
     chess_free_moves_array(moves);
     return best_score;
 }
+
 
 // --- Find best move avoiding repetition ---
 Move find_best_move(Board *board, int depth, uint64_t history[], int history_len) {
@@ -104,21 +126,14 @@ Move find_best_move(Board *board, int depth, uint64_t history[], int history_len
         if (would_repeat(board, moves[i], history, history_len))
             continue;
 
-        int capture_bonus = 0;
-        if (moves[i].capture) {
-            PieceType captured = chess_get_piece_from_bitboard(board, moves[i].to);
-            capture_bonus = piece_value(captured);
-        }
-
-        // Make move and add hash
+        // Make move
         chess_make_move(board, moves[i]);
-        history[history_len++] = chess_zobrist_key(board);
+        uint64_t hash = chess_zobrist_key(board);
+        history[history_len] = hash;
 
-        int score = minimax(board, depth - 1, !maximizing, history, history_len);
+        int score = minimax(board, depth - 1, !maximizing, INT_MIN, INT_MAX, history, history_len + 1);
+
         chess_undo_move(board);
-        history_len--; // remove hash after undo
-
-        score += maximizing ? capture_bonus : -capture_bonus;
 
         if ((maximizing && score > best_score) || (!maximizing && score < best_score)) {
             best_score = score;
@@ -141,9 +156,8 @@ int main(void) {
             break;
         }
 
-        Move best = find_best_move(board, 2, board_history, history_len);
+        Move best = find_best_move(board, 4, board_history, history_len); // depth 4 safe
 
-        // Push move and add hash to history
         chess_push(best);
         board_history[history_len++] = chess_zobrist_key(board);
 

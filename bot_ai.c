@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 // --- Piece values ---
 int piece_value(PieceType piece) {
@@ -32,16 +33,20 @@ int evaluate_board(Board *board, uint64_t history[], int history_len) {
     BitBoard b_knight = chess_get_bitboard(board, BLACK, KNIGHT);
     BitBoard b_bishop = chess_get_bitboard(board, BLACK, BISHOP);
 
-    BitBoard w_dev = w_knight & ~(1ULL << 1 | 1ULL << 6) |
-                     w_bishop & ~(1ULL << 2 | 1ULL << 5);
+    // White starting squares: knights b1(1), g1(6); bishops c1(2), f1(5)
+    BitBoard w_knight_dev = w_knight & ~(1ULL << 1 | 1ULL << 6);
+    BitBoard w_bishop_dev = w_bishop & ~(1ULL << 2 | 1ULL << 5);
+    BitBoard w_dev = w_knight_dev | w_bishop_dev;
 
-    BitBoard b_dev = b_knight & ~(1ULL << 57 | 1ULL << 62) |
-                     b_bishop & ~(1ULL << 58 | 1ULL << 61);
+    // Black starting squares: knights b8(57), g8(62); bishops c8(58), f8(61)
+    BitBoard b_knight_dev = b_knight & ~(1ULL << 57 | 1ULL << 62);
+    BitBoard b_bishop_dev = b_bishop & ~(1ULL << 58 | 1ULL << 61);
+    BitBoard b_dev = b_knight_dev | b_bishop_dev;
 
-    score += 15 * (__builtin_popcountll(w_dev) - __builtin_popcountll(b_dev));
+    score += 10 * (__builtin_popcountll(w_dev) - __builtin_popcountll(b_dev));
 
-    // --- Center control bonus ---
-    BitBoard center = 1ULL << 27 | 1ULL << 28 | 1ULL << 35 | 1ULL << 36;
+    // --- Center control bonus (d4,e4,d5,e5 squares) ---
+    BitBoard center = (1ULL << 27) | (1ULL << 28) | (1ULL << 35) | (1ULL << 36);
 
     BitBoard w_center = (chess_get_bitboard(board, WHITE, PAWN) |
                          chess_get_bitboard(board, WHITE, KNIGHT) |
@@ -53,20 +58,21 @@ int evaluate_board(Board *board, uint64_t history[], int history_len) {
                          chess_get_bitboard(board, BLACK, BISHOP) |
                          chess_get_bitboard(board, BLACK, QUEEN)) & center;
 
-    score += 25 * (__builtin_popcountll(w_center) - __builtin_popcountll(b_center));
+    score += 20 * (__builtin_popcountll(w_center) - __builtin_popcountll(b_center));
 
     // --- King safety / castling bonus ---
     if (chess_can_kingside_castle(board, WHITE) || chess_can_queenside_castle(board, WHITE))
-        score += 40;
+        score += 30;
     if (chess_can_kingside_castle(board, BLACK) || chess_can_queenside_castle(board, BLACK))
-        score -= 40;
+        score -= 30;
 
     // --- Penalize repeated positions ---
     uint64_t hash = chess_zobrist_key(board);
     int repeat_count = 0;
-    for (int i = 0; i < history_len; i++)
-        if (history[i] == hash) repeat_count++;
-
+    for (int i = 0; i < history_len; i++) {
+        if (history[i] == hash)
+            repeat_count++;
+    }
     score -= repeat_count * 500;
 
     return score;

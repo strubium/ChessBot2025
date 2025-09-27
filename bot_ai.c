@@ -32,11 +32,11 @@ int evaluate_board(Board *board, uint64_t history[], int history_len) {
     BitBoard b_knight = chess_get_bitboard(board, BLACK, KNIGHT);
     BitBoard b_bishop = chess_get_bitboard(board, BLACK, BISHOP);
 
-    BitBoard w_dev = w_knight & ~(1ULL << 1 | 1ULL << 6) |
-                     w_bishop & ~(1ULL << 2 | 1ULL << 5);
+    BitBoard w_dev = (w_knight & ~((1ULL << 1) | (1ULL << 6))) |
+                 (w_bishop & ~((1ULL << 2) | (1ULL << 5)));
 
-    BitBoard b_dev = b_knight & ~(1ULL << 57 | 1ULL << 62) |
-                     b_bishop & ~(1ULL << 58 | 1ULL << 61);
+    BitBoard b_dev = (b_knight & ~((1ULL << 57) | (1ULL << 62))) |
+                     (b_bishop & ~((1ULL << 58) | (1ULL << 61)));
 
     score += 15 * (__builtin_popcountll(w_dev) - __builtin_popcountll(b_dev));
 
@@ -207,7 +207,7 @@ int main(void) {
             break;
         }
 
-        Move best = find_best_move(board, 4, board_history, history_len); // depth 4 safe
+        Move best = find_best_move(board, 5, board_history, history_len); // depth 5 safe
 
         chess_push(best);
         board_history[history_len++] = chess_zobrist_key(board);
